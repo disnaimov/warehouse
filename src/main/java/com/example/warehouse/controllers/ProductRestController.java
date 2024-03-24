@@ -3,8 +3,7 @@ package com.example.warehouse.controllers;
 import com.example.warehouse.dto.ProductDto;
 import com.example.warehouse.dto.ProductResponseDto;
 import com.example.warehouse.service.ProductService;
-import lombok.NonNull;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,13 +16,10 @@ import static org.springframework.http.HttpStatus.OK;
 
 @RequestMapping("/products")
 @RestController
+@RequiredArgsConstructor
 public class ProductRestController {
-    private final ProductService productService;
 
-    @Autowired
-    public ProductRestController(ProductService productService){
-        this.productService = productService;
-    }
+    private final ProductService productService;
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ProductResponseDto> create(@RequestBody ProductDto productDto){
