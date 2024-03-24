@@ -3,6 +3,7 @@ package com.example.warehouse.controllers;
 import com.example.warehouse.dto.ProductDto;
 import com.example.warehouse.dto.ProductResponseDto;
 import com.example.warehouse.service.ProductService;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -3,10 +3,9 @@ package com.example.warehouse.service;
 import com.example.warehouse.dao.ProductRepository;
 import com.example.warehouse.dto.ProductDto;
 import com.example.warehouse.entities.Product;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.message.Message;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -17,24 +16,20 @@ import java.util.UUID;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ProductService {
+
     private final ProductRepository productRepository;
 
     private final ModelMapper mapper;
 
-    @Autowired
-    public ProductService(ProductRepository productRepository, ModelMapper mapper){
-        this.productRepository = productRepository;
-        this.mapper = mapper;
-    }
-
     public ProductDto create(ProductDto productDto) {
         log.info("Saving product");
         log.debug("Saving product {}", productDto.toString());
-        Date currentDate = new Date();
+        Date date = new Date();
 
         Product product = mapper.map(productDto, Product.class);
-        product.setCreated(new Timestamp(currentDate.getTime()));
+        product.setLastQuantityUpdate(new Timestamp(date.getTime()));
         product = productRepository.save(product);
         ProductDto saved = mapper.map(product, ProductDto.class);
 
@@ -47,9 +42,7 @@ public class ProductService {
         log.info("Updating product");
         log.debug("Updating product {}", productDto.toString());
 
-        ProductDto updated = new ProductDto();
 
-        if (productRepository.findById(productDto.getId()).isPresent()) {
             Product product = productRepository.findById(productDto.getId()).orElseThrow();
             if (product.getQuantity() != productDto.getQuantity()) {
                 Date currentDate = new Date();
@@ -63,8 +56,8 @@ public class ProductService {
             product.setQuantity(productDto.getQuantity());
 
             product = productRepository.save(product);
-            updated = mapper.map(product, ProductDto.class);
-        }
+            ProductDto updated = mapper.map(product, ProductDto.class);
+
 
         log.info("Product updated");
         log.debug("Product updated {}", updated.toString());

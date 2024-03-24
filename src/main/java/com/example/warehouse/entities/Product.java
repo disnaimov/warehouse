@@ -1,17 +1,22 @@
 package com.example.warehouse.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.UUID;
 
 @Table(name = "products")
-@Getter
-@Setter
 @Entity
-public class Product {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Product implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -39,5 +44,6 @@ public class Product {
     private Timestamp lastQuantityUpdate;
 
     @Column(name = "creation_date", nullable = false)
+    @CreationTimestamp
     private Timestamp created;
 }
