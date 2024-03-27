@@ -26,8 +26,11 @@ public class ProductService {
     public ProductDto create(ProductDto productDto) {
         log.info("Saving product");
         log.debug("Saving product {}", productDto.toString());
-        Date date = new Date();
+        if (productDto.getPrice() <= 0) {
+            throw new IllegalArgumentException("Price is required");
+        }
 
+        Date date = new Date();
         Product product = mapper.map(productDto, Product.class);
         product.setLastQuantityUpdate(new Timestamp(date.getTime()));
         product = productRepository.save(product);
@@ -91,5 +94,12 @@ public class ProductService {
         log.info("Getting product by id");
         log.debug("Getting product by id {}", id);
         return mapper.map(productRepository.findById(id), ProductDto.class);
+    }
+
+    public void deleteAll() {
+        List<Product> productDtos = productRepository.findAll();
+        for (Product p : productDtos) {
+            productRepository.deleteById(p.getId());
+        }
     }
 }

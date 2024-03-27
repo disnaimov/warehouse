@@ -5,8 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.lang.NonNull;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -17,6 +18,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Product implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 7114432016011577607L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)

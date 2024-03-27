@@ -5,6 +5,7 @@ import com.example.warehouse.dto.ProductResponseDto;
 import com.example.warehouse.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ public class ProductRestController {
     private final ProductService productService;
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<ProductResponseDto> create(@RequestBody ProductDto productDto){
+    public ResponseEntity<ProductResponseDto> create(@RequestBody @Validated ProductDto productDto) {
         List<ProductDto> productDtos = new ArrayList<>();
         productDtos.add(productService.create(productDto));
         ProductResponseDto productResponseDto = new ProductResponseDto(CREATED.value(), productDtos);
@@ -31,7 +32,7 @@ public class ProductRestController {
     }
 
     @RequestMapping(method = RequestMethod.PUT)
-    public ResponseEntity<ProductResponseDto> update(@RequestBody ProductDto productDto) {
+    public ResponseEntity<ProductResponseDto> update(@RequestBody @Validated ProductDto productDto) {
         productService.update(productDto);
         List<ProductDto> productDtos = new ArrayList<>();
         productDtos.add(productDto);
@@ -70,4 +71,11 @@ public class ProductRestController {
         return new ResponseEntity<>(productResponseDto, OK);
     }
 
+    @RequestMapping(method = RequestMethod.DELETE)
+    public ResponseEntity<ProductResponseDto> deleteAll() {
+        productService.deleteAll();
+        ProductResponseDto productResponseDto = new ProductResponseDto(OK.value(), null);
+
+        return new ResponseEntity<>(productResponseDto, OK);
+    }
 }
