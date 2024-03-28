@@ -55,6 +55,6 @@ public class ProductServiceExceptionHandler extends ResponseEntityExceptionHandl
     @NoArgsConstructor
     private static class AwesomeException{
         private String message;
-        private String error_code;
+        private String errorCode;
     }
 }
