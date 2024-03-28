@@ -6,7 +6,9 @@ import com.example.warehouse.entities.Product;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -23,12 +25,10 @@ public class ProductService {
 
     private final ModelMapper mapper;
 
+    @Transactional
     public ProductDto create(ProductDto productDto) {
         log.info("Saving product");
         log.debug("Saving product {}", productDto.toString());
-        if (productDto.getPrice() <= 0) {
-            throw new IllegalArgumentException("Price is required");
-        }
 
         Date date = new Date();
         Product product = mapper.map(productDto, Product.class);
@@ -41,6 +41,7 @@ public class ProductService {
         return saved;
     }
 
+    @Transactional
     public ProductDto update(ProductDto productDto){
         log.info("Updating product");
         log.debug("Updating product {}", productDto.toString());
@@ -67,6 +68,7 @@ public class ProductService {
         return updated;
     }
 
+    @Transactional
     public void removeById(UUID id){
         log.info("Removal product by id");
         log.debug("Removal product by id {}", id);
@@ -75,10 +77,11 @@ public class ProductService {
         log.debug("Product by id removed {}", productRepository.findById(id));
     }
 
-    public List<ProductDto> getAll() {
+    @Transactional
+    public List<ProductDto> getAll(PageRequest pageRequest) {
         log.info("getting all products");
         log.debug("getting all products");
-        List<Product> products = productRepository.findAll();
+        List<Product> products = productRepository.findAll(pageRequest).getContent();
         List<ProductDto> productDtos = new ArrayList<>();
 
         for (Product p: products){
@@ -90,16 +93,10 @@ public class ProductService {
         return productDtos;
     }
 
+    @Transactional
     public ProductDto getById(UUID id) {
         log.info("Getting product by id");
         log.debug("Getting product by id {}", id);
         return mapper.map(productRepository.findById(id), ProductDto.class);
-    }
-
-    public void deleteAll() {
-        List<Product> productDtos = productRepository.findAll();
-        for (Product p : productDtos) {
-            productRepository.deleteById(p.getId());
-        }
     }
 }

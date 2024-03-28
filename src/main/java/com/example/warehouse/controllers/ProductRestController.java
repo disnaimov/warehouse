@@ -4,8 +4,8 @@ import com.example.warehouse.dto.ProductDto;
 import com.example.warehouse.dto.ProductResponseDto;
 import com.example.warehouse.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -23,16 +23,17 @@ public class ProductRestController {
     private final ProductService productService;
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<ProductResponseDto> create(@RequestBody @Validated ProductDto productDto) {
+    public ResponseEntity<ProductResponseDto> create(@RequestBody ProductDto productDto) {
         List<ProductDto> productDtos = new ArrayList<>();
-        productDtos.add(productService.create(productDto));
+        productService.create(productDto);
+        productDtos.add(productDto);
         ProductResponseDto productResponseDto = new ProductResponseDto(CREATED.value(), productDtos);
 
         return new ResponseEntity<>(productResponseDto, CREATED);
     }
 
     @RequestMapping(method = RequestMethod.PUT)
-    public ResponseEntity<ProductResponseDto> update(@RequestBody @Validated ProductDto productDto) {
+    public ResponseEntity<ProductResponseDto> update(@RequestBody ProductDto productDto) {
         productService.update(productDto);
         List<ProductDto> productDtos = new ArrayList<>();
         productDtos.add(productDto);
@@ -43,8 +44,9 @@ public class ProductRestController {
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<ProductResponseDto> getAll() {
-        List<ProductDto> productDtos = productService.getAll();
+    public ResponseEntity<ProductResponseDto> getAll(@RequestParam (required = false, defaultValue = "0") int page,
+                                                     @RequestParam (required = false, defaultValue = "20") int size) {
+        List<ProductDto> productDtos = productService.getAll(PageRequest.of(page, size));
         ProductResponseDto productResponseDto = new ProductResponseDto(OK.value(), productDtos);
 
         return new ResponseEntity<>(productResponseDto, OK);
@@ -67,14 +69,6 @@ public class ProductRestController {
         productDtos.add(productService.getById(id));
 
         ProductResponseDto productResponseDto = new ProductResponseDto(OK.value(), productDtos);
-
-        return new ResponseEntity<>(productResponseDto, OK);
-    }
-
-    @RequestMapping(method = RequestMethod.DELETE)
-    public ResponseEntity<ProductResponseDto> deleteAll() {
-        productService.deleteAll();
-        ProductResponseDto productResponseDto = new ProductResponseDto(OK.value(), null);
 
         return new ResponseEntity<>(productResponseDto, OK);
     }
