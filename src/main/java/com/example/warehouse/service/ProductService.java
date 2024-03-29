@@ -3,14 +3,17 @@ package com.example.warehouse.service;
 import com.example.warehouse.dao.ProductRepository;
 import com.example.warehouse.dto.ProductDto;
 import com.example.warehouse.entities.Product;
+import com.example.warehouse.exceptions.InvalidEntityDataException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -25,20 +28,55 @@ public class ProductService {
 
     private final ModelMapper mapper;
 
+    private void validation(ProductDto productDto) {
+        if (productRepository.findByArticle(productDto.getArticle()) != null) {
+            log.error("received a non-unique article");
+            throw new InvalidEntityDataException("Указанный артикул уже существует", "INCORRECT_ARTICLE", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        if (productDto.getArticle() == null || productDto.getArticle().isBlank()) {
+            log.error("received incorrect article");
+            throw new InvalidEntityDataException("Некорректный артикул: Проверьте правильность ввода и повторите попытку.", "INCORRECT_ARTICLE", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        if (productDto.getCategory() == null || productDto.getCategory().isBlank()) {
+            log.error("received incorrect category");
+            throw new InvalidEntityDataException("Некорректная категория: Проверьте правильность ввода и повторите попытку.", "INCORRECT_CATEGORY", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        if (productDto.getDescription() == null || productDto.getDescription().isBlank()) {
+            log.error("received incorrect description");
+            throw new InvalidEntityDataException("Некорректное описание: Проверьте правильность ввода и повторите попытку.", "INCORRECT_DESCRIPTION", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        if (productDto.getPrice() <= 0) {
+            log.error("received incorrect price, <= 0");
+            throw new InvalidEntityDataException("Некорректная цена: Проверьте правильность ввода и повторите попытку.", "INCORRECT_PRICE", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        if (productDto.getQuantity() <= 0) {
+            log.error("received incorrect quantity, <= 0");
+            throw new InvalidEntityDataException("Некорректное количество: Проверьте правильность ввода и повторите попытку.", "INCORRECT_QUANTITY", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+    }
+
     @Transactional
-    public ProductDto create(ProductDto productDto) {
+    public ProductDto create(ProductDto productDto) throws InvalidEntityDataException {
         log.info("Saving product");
         log.debug("Saving product {}", productDto.toString());
 
-        Date date = new Date();
-        Product product = mapper.map(productDto, Product.class);
-        product.setLastQuantityUpdate(new Timestamp(date.getTime()));
-        product = productRepository.save(product);
-        ProductDto saved = mapper.map(product, ProductDto.class);
+            validation(productDto);
 
-        log.info("Product saved");
-        log.debug("Product saved {}", saved.toString());
-        return saved;
+            Date date = new Date();
+            Product product = mapper.map(productDto, Product.class);
+            product.setCreated(LocalDate.now());
+            product.setLastQuantityUpdate(new Timestamp(date.getTime()));
+            product = productRepository.save(product);
+            ProductDto saved = mapper.map(product, ProductDto.class);
+
+            log.info("Product saved");
+            log.debug("Product saved {}", saved.toString());
+            return saved;
     }
 
     @Transactional
@@ -46,6 +84,7 @@ public class ProductService {
         log.info("Updating product");
         log.debug("Updating product {}", productDto.toString());
 
+            validation(productDto);
 
             Product product = productRepository.findById(productDto.getId()).orElseThrow();
             if (product.getQuantity() != productDto.getQuantity()) {
@@ -81,6 +120,7 @@ public class ProductService {
     public List<ProductDto> getAll(PageRequest pageRequest) {
         log.info("getting all products");
         log.debug("getting all products");
+
         List<Product> products = productRepository.findAll(pageRequest).getContent();
         List<ProductDto> productDtos = new ArrayList<>();
 

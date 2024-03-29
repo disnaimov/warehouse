@@ -1,14 +1,14 @@
 package com.example.warehouse.controllers;
 
 import com.example.warehouse.dto.ProductDto;
-import com.example.warehouse.dto.ProductResponseDto;
+import com.example.warehouse.exceptions.InvalidEntityDataException;
 import com.example.warehouse.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,53 +23,30 @@ public class ProductRestController {
     private final ProductService productService;
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<ProductResponseDto> create(@RequestBody ProductDto productDto) {
-        List<ProductDto> productDtos = new ArrayList<>();
-        productService.create(productDto);
-        productDtos.add(productDto);
-        ProductResponseDto productResponseDto = new ProductResponseDto(CREATED.value(), productDtos);
-
-        return new ResponseEntity<>(productResponseDto, CREATED);
+    public ResponseEntity<ProductDto> create(@RequestBody ProductDto productDto) throws InvalidEntityDataException {
+        return new ResponseEntity<>(productService.create(productDto), CREATED);
     }
 
     @RequestMapping(method = RequestMethod.PUT)
-    public ResponseEntity<ProductResponseDto> update(@RequestBody ProductDto productDto) {
-        productService.update(productDto);
-        List<ProductDto> productDtos = new ArrayList<>();
-        productDtos.add(productDto);
-
-        ProductResponseDto productResponseDto = new ProductResponseDto(OK.value(), productDtos);
-
-        return new ResponseEntity<>(productResponseDto, OK);
+    public ResponseEntity<ProductDto> update(@RequestBody ProductDto productDto) {
+        return new ResponseEntity<>(productService.update(productDto), OK);
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<ProductResponseDto> getAll(@RequestParam (required = false, defaultValue = "0") int page,
-                                                     @RequestParam (required = false, defaultValue = "20") int size) {
-        List<ProductDto> productDtos = productService.getAll(PageRequest.of(page, size));
-        ProductResponseDto productResponseDto = new ProductResponseDto(OK.value(), productDtos);
+    public ResponseEntity<List<ProductDto>> getAll(@RequestParam (required = false, defaultValue = "0") int page,
+                                                   @RequestParam (required = false, defaultValue = "20") int size) {
 
-        return new ResponseEntity<>(productResponseDto, OK);
+        return new ResponseEntity<>(productService.getAll(PageRequest.of(page, size)), OK);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseEntity<ProductResponseDto> getById(@PathVariable("id") UUID id){
-        List<ProductDto> productDtos = new ArrayList<>();
-        productDtos.add(productService.getById(id));
-
-        ProductResponseDto productResponseDto = new ProductResponseDto(OK.value(), productDtos);
-
-        return new ResponseEntity<>(productResponseDto, OK);
+    public ResponseEntity<ProductDto> getById(@PathVariable("id") UUID id){
+        return new ResponseEntity<>(productService.getById(id), OK);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<ProductResponseDto> deleteById(@PathVariable("id") UUID id) {
+    public ResponseEntity<Object> deleteById(@PathVariable("id") UUID id) {
         productService.removeById(id);
-        List<ProductDto> productDtos = new ArrayList<>();
-        productDtos.add(productService.getById(id));
-
-        ProductResponseDto productResponseDto = new ProductResponseDto(OK.value(), productDtos);
-
-        return new ResponseEntity<>(productResponseDto, OK);
+        return new ResponseEntity<>(OK);
     }
 }

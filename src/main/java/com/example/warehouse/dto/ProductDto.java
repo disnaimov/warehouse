@@ -1,11 +1,13 @@
 package com.example.warehouse.dto;
 
-import lombok.*;
-import org.springframework.lang.NonNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @AllArgsConstructor
@@ -32,5 +34,5 @@ public class ProductDto implements Serializable {
 
     private Timestamp lastQuantityUpdate;
 
-    private Timestamp created;
+    private LocalDate created;
 }

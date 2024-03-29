@@ -5,9 +5,9 @@ CREATE TABLE IF NOT EXISTS products (
     description   TEXT            not null,
     category      TEXT    not null,
     price         DECIMAL         not null,
-    quantity      INT                     ,
+    quantity      INT             not null,
     last_quantity_update          TIMESTAMP   not null,
-    creation_date                 TIMESTAMP   not null,
+    creation_date                 DATE   not null,
      UNIQUE      (id),
     PRIMARY KEY (id)
     );
