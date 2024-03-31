@@ -1,12 +1,10 @@
 package com.example.warehouse.controllers;
 
 import com.example.warehouse.dto.ProductDto;
-import com.example.warehouse.exceptions.InvalidEntityDataException;
 import com.example.warehouse.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +13,13 @@ import java.util.UUID;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
+/**
+ * @author Dmitriy
+ * @version 1.0
+ * @since 1.0
+ * Product rest controller class
+ * Used {@link ProductService} class. {@link ProductDto} class.
+ */
 @RequestMapping("/products")
 @RestController
 @RequiredArgsConstructor
@@ -22,16 +27,32 @@ public class ProductRestController {
 
     private final ProductService productService;
 
+    /**
+     * Create a new product with parameters received from the user using product service
+     * @param productDto - product DTO received from the user
+     * @return new Response Entity with the return value of the create method and the created status
+     */
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<ProductDto> create(@RequestBody ProductDto productDto) throws InvalidEntityDataException {
+    public ResponseEntity<ProductDto> create(@RequestBody ProductDto productDto) {
         return new ResponseEntity<>(productService.create(productDto), CREATED);
     }
 
+    /**
+     *Update product using user-supplied parameters
+     * @param productDto - product DTO received from the user
+     * @return new Response Entity with the return value of the update method and the ok status
+     */
     @RequestMapping(method = RequestMethod.PUT)
     public ResponseEntity<ProductDto> update(@RequestBody ProductDto productDto) {
         return new ResponseEntity<>(productService.update(productDto), OK);
     }
 
+    /**
+     * Get all product method
+     * @param page - number of pages, needed for pagination
+     * @param size - number of elements per page, needed for pagination
+     * @return new Response Entity with the return value of the get all method and the ok status
+     */
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<ProductDto>> getAll(@RequestParam (required = false, defaultValue = "0") int page,
                                                    @RequestParam (required = false, defaultValue = "20") int size) {
@@ -39,11 +60,21 @@ public class ProductRestController {
         return new ResponseEntity<>(productService.getAll(PageRequest.of(page, size)), OK);
     }
 
+    /**
+     * Get by id method
+     * @param id - id parameter received from the user
+     * @return new Response Entity with the return value of the get by id method and the ok status
+     */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public ResponseEntity<ProductDto> getById(@PathVariable("id") UUID id){
         return new ResponseEntity<>(productService.getById(id), OK);
     }
 
+    /**
+     * Delete by id method
+     * @param id - id parameter received from the user
+     * @return new Response Entity with the ok status
+     */
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<Object> deleteById(@PathVariable("id") UUID id) {
         productService.removeById(id);

@@ -10,6 +10,12 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/**
+ * @author Dmitriy
+ * @version 1.0
+ * @since 1.0
+ * DTO class for {@link com.example.warehouse.entities.Product} class.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

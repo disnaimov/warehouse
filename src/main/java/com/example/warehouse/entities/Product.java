@@ -11,6 +11,13 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.UUID;
 
+/**
+ * @author Dmitriy
+ * @version 1.0
+ * @since 1.0
+ * This is product entity class with property ID, name, article, description, category, price, quantity,
+ * last quantity update, created
+ */
 @Table(name = "products")
 @Entity
 @Data
