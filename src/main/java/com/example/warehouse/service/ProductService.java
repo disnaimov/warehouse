@@ -141,7 +141,10 @@ public class ProductService {
     public void removeById(UUID id){
         log.info("Removal product by id");
         log.debug("Removal product by id {}", id);
-        productRepository.delete(productRepository.findById(id).orElseThrow());
+        if (productRepository.findById(id).isPresent()) {
+            productRepository.delete(productRepository.findById(id).orElseThrow());
+        }
+        else throw new InvalidEntityDataException("Ошибка: указанный id не существует", "INCORRECT_ID", HttpStatus.BAD_REQUEST);
         log.info("Product by id removed");
         log.debug("Product by id removed {}", productRepository.findById(id));
     }
@@ -178,6 +181,10 @@ public class ProductService {
     public ProductDto getById(UUID id) {
         log.info("Getting product by id");
         log.debug("Getting product by id {}", id);
-        return mapper.map(productRepository.findById(id), ProductDto.class);
+
+        if (productRepository.findById(id).isPresent()) {
+            return mapper.map(productRepository.findById(id), ProductDto.class);
+        }
+        else throw new InvalidEntityDataException("Ошибка: указанный id не существует", "INCORRECT_ID", HttpStatus.BAD_REQUEST);
     }
 }

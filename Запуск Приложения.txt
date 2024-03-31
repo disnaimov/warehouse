@@ -1,0 +1,44 @@
+1) Скачать JDK версии 17 и выше
+2) PostgreSQL 15 и выше
+3) Замените данные в файле application-develop.properties на ваши
+
+spring.datasource.url = jdbc:postgresql://localhost:5432/yourdatabase
+spring.datasource.username = yourusername
+spring.datasource.password = yourpassword
+spring.jpa.database-platform = org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.hibernate.ddl-auto = update
+
+4) Для локального запуска приложения запускайте под профилем develop
+5) Запускаем приложения в Idea
+
+
+Для запуска в докере 
+1) Установить докер
+2) Использовать команду mvn install в Idea в меню Maven
+3) Сбилдить докер образ командой docker build -t warehouse . либо командой docker compose up --build -d
+4) Заменить данные в application.properties на ваши
+
+spring.datasource.url = jdbc:postgresql://localhost:5432/yourdatabase
+spring.datasource.username = yourusername
+spring.datasource.password = yourpassword
+spring.jpa.database-platform = org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.hibernate.ddl-auto = update
+
+5) Зайти в файл docker compose
+
+6) Заменить данные компонента postgres, enviroment на ваши
+
+      - 'POSTGRES_USER=yourusername'
+      - 'POSTGRES_PASSWORD=yourpassword'
+      - 'POSTGRES_DB=yourdatabase'
+
+7) Заменить данные у компонента app, enviroment на ваши
+
+      - 'SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/yourdatabase'
+      - 'SPRING_DATASOURCE_USERNAME=yourusername'
+      - 'SPRING_DATASOURCE_PASSWORD=yourpassword'
+      - 'SPRING_JPA_HIBERNATE_DDL_AUTO=update'
+
+
+
+8) Запустить docker compose в Idea или командой 
