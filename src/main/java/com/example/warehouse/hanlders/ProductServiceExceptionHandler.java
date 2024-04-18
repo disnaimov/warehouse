@@ -29,7 +29,7 @@ public class ProductServiceExceptionHandler extends ResponseEntityExceptionHandl
     protected ResponseEntity<Object> handleInvalidEntityDataException(InvalidEntityDataException ex) {
 
         ExceptionHandlerResponse exceptionHandlerResponse = new ExceptionHandlerResponse(ex.getMessage(), ex.getErrorCode(), ex.getStatus());
-        return new ResponseEntity<>(exceptionHandlerResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+        return new ResponseEntity<>(exceptionHandlerResponse, ex.getStatus());
     }
 
     /**

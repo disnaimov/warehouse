@@ -1,7 +1,11 @@
 package com.example.warehouse.service;
 
+import com.example.warehouse.annotation.MethodExecutionTime;
 import com.example.warehouse.dao.ProductRepository;
+import com.example.warehouse.dto.CreateProductDto;
 import com.example.warehouse.dto.ProductDto;
+import com.example.warehouse.dto.ProductResponseDto;
+import com.example.warehouse.dto.UpdateProductDto;
 import com.example.warehouse.entities.Product;
 import com.example.warehouse.exceptions.InvalidEntityDataException;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -25,6 +30,7 @@ import java.util.UUID;
  * @since 1.0
  * Product service class
  * Used {@link ProductRepository} class. {@link ModelMapper} class. {@link InvalidEntityDataException} class.
+ * {@link CreateProductDto} class. {@link com.example.warehouse.dto.UpdateProductDto} class. {@link ProductResponseDto} class.
  * Has validation and CRUD methods
  */
 @Service
@@ -46,7 +52,7 @@ public class ProductService {
             throw new InvalidEntityDataException("Указанный артикул уже существует", "INCORRECT_ARTICLE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        if (productDto.getArticle() == null || productDto.getArticle().isBlank()) {
+        if (productDto.getArticle() == null) {
             log.error("received incorrect article");
             throw new InvalidEntityDataException("Некорректный артикул: Проверьте правильность ввода и повторите попытку.", "INCORRECT_ARTICLE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -65,7 +71,7 @@ public class ProductService {
             throw new InvalidEntityDataException("Некорректное описание: Проверьте правильность ввода и повторите попытку.", "INCORRECT_DESCRIPTION", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        if (productDto.getPrice() <= 0) {
+        if (productDto.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
             log.error("received incorrect price, <= 0");
             throw new InvalidEntityDataException("Некорректная цена: Проверьте правильность ввода и повторите попытку.", "INCORRECT_PRICE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -78,37 +84,41 @@ public class ProductService {
 
     /**
      * method for creating a new product based on users dto
-     * @param productDto - product received from the user
+     * @param createProductDto - product received from the user
      * @return new Product DTO
      */
     @Transactional
-    public ProductDto create(ProductDto productDto) {
+    public UUID create(CreateProductDto createProductDto) {
         log.info("Saving product");
-        log.debug("Saving product {}", productDto.toString());
+        log.debug("Saving product {}", createProductDto.toString());
 
-            validation(productDto);
+        ProductDto productDto = mapper.map(createProductDto, ProductDto.class);
 
-            Date date = new Date();
-            Product product = mapper.map(productDto, Product.class);
-            product.setCreated(LocalDate.now());
-            product.setLastQuantityUpdate(new Timestamp(date.getTime()));
-            product = productRepository.save(product);
-            ProductDto saved = mapper.map(product, ProductDto.class);
+        validation(productDto);
 
-            log.info("Product saved");
-            log.debug("Product saved {}", saved.toString());
-            return saved;
+        Date date = new Date();
+        Product product = mapper.map(productDto, Product.class);
+        product.setCreated(LocalDate.now());
+        product.setLastQuantityUpdate(new Timestamp(date.getTime()));
+        product = productRepository.save(product);
+        productDto = mapper.map(product, ProductDto.class);
+
+        log.info("Product saved");
+        log.debug("Product saved {}", productDto.toString());
+        return productDto.getId();
     }
 
     /**
      * product update method based on users dto
-     * @param productDto - product received from the user
+     * @param updateProductDto - product received from the user
      * @return Updated Product DTO
      */
     @Transactional
-    public ProductDto update(ProductDto productDto){
+    public ProductResponseDto update(UpdateProductDto updateProductDto){
         log.info("Updating product");
-        log.debug("Updating product {}", productDto.toString());
+        log.debug("Updating product {}", updateProductDto.toString());
+
+        ProductDto productDto = mapper.map(updateProductDto, ProductDto.class);
 
             validation(productDto);
 
@@ -125,12 +135,12 @@ public class ProductService {
             product.setQuantity(productDto.getQuantity());
 
             product = productRepository.save(product);
-            ProductDto updated = mapper.map(product, ProductDto.class);
+            ProductResponseDto productResponseDto = mapper.map(product, ProductResponseDto.class);
 
 
         log.info("Product updated");
-        log.debug("Product updated {}", updated.toString());
-        return updated;
+        log.debug("Product updated {}", product);
+        return productResponseDto;
     }
 
     /**
@@ -144,7 +154,7 @@ public class ProductService {
         if (productRepository.findById(id).isPresent()) {
             productRepository.delete(productRepository.findById(id).orElseThrow());
         }
-        else throw new InvalidEntityDataException("Ошибка: указанный id не существует", "INCORRECT_ID", HttpStatus.BAD_REQUEST);
+        else throw new InvalidEntityDataException("Ошибка: указанный id не существует", "INCORRECT_ID", HttpStatus.NOT_FOUND);
         log.info("Product by id removed");
         log.debug("Product by id removed {}", productRepository.findById(id));
     }
@@ -156,20 +166,21 @@ public class ProductService {
      * @return List Product DTOs
      */
     @Transactional
-    public List<ProductDto> getAll(PageRequest pageRequest) {
+    @MethodExecutionTime
+    public List<ProductResponseDto> getAll(PageRequest pageRequest) {
         log.info("getting all products");
         log.debug("getting all products");
 
         List<Product> products = productRepository.findAll(pageRequest).getContent();
-        List<ProductDto> productDtos = new ArrayList<>();
+        List<ProductResponseDto> productResponseDtos = new ArrayList<>();
 
         for (Product p: products){
-            productDtos.add(mapper.map(p, ProductDto.class));
+            productResponseDtos.add(mapper.map(p, ProductResponseDto.class));
         }
 
         log.info("All products received");
         log.debug("All products received");
-        return productDtos;
+        return productResponseDtos;
     }
 
     /**
@@ -178,13 +189,13 @@ public class ProductService {
      * @return Product DTO by user specified id
      */
     @Transactional
-    public ProductDto getById(UUID id) {
+    public ProductResponseDto getById(UUID id) {
         log.info("Getting product by id");
         log.debug("Getting product by id {}", id);
 
         if (productRepository.findById(id).isPresent()) {
-            return mapper.map(productRepository.findById(id), ProductDto.class);
+            return mapper.map(productRepository.findById(id), ProductResponseDto.class);
         }
-        else throw new InvalidEntityDataException("Ошибка: указанный id не существует", "INCORRECT_ID", HttpStatus.BAD_REQUEST);
+        else throw new InvalidEntityDataException("Ошибка: указанный id не существует", "INCORRECT_ID", HttpStatus.NOT_FOUND);
     }
 }
