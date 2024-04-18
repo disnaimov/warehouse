@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -28,13 +29,13 @@ public class ProductDto implements Serializable {
 
     private String name;
 
-    private String article;
+    private UUID article;
 
     private String description;
 
     private String category;
 
-    private int price;
+    private BigDecimal price;
 
     private int quantity;
 

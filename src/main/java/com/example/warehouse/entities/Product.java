@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -37,7 +38,7 @@ public class Product implements Serializable {
     private String name;
 
     @Column(name = "article", nullable = false, unique = true)
-    private String article;
+    private UUID article;
 
     @Column(name = "description", nullable = false)
     private String description;
@@ -46,7 +47,7 @@ public class Product implements Serializable {
     private String category;
 
     @Column(name = "price", nullable = false)
-    private int price;
+    private BigDecimal price;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;
