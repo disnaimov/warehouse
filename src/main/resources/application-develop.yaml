@@ -1,0 +1,23 @@
+server:
+  port: 8082
+
+spring:
+  liquibase:
+    enabled: false
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+  datasource:
+    url: jdbc:h2:mem:warehouse;LOCK_TIMEOUT=60000
+    username: postgres
+    password: ${PWD}
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  h2:
+    console:
+      enabled: true
+      path: "/warehouse/h2-console"
