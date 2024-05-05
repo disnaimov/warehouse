@@ -1,8 +1,8 @@
 package com.example.warehouse.service;
 
-import com.example.warehouse.annotation.MethodExecutionTime;
 import com.example.warehouse.dao.ProductRepository;
 import com.example.warehouse.dto.*;
+import com.example.warehouse.entities.Currency;
 import com.example.warehouse.entities.Product;
 import com.example.warehouse.exceptions.InvalidEntityDataException;
 import jakarta.persistence.EntityManager;
@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
@@ -45,6 +46,9 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     private final ModelMapper mapper;
+
+    private final CurrencyServiceClient currencyServiceClient;
+    private Currency cachedCurrency;
 
     /**
      * Validation method, checks input DTO
@@ -86,6 +90,42 @@ public class ProductService {
         }
     }
 
+    private BigDecimal currencyMultiply(String currency) {
+        if (cachedCurrency == null) {
+            cachedCurrency = currencyServiceClient.getWithCurrency();
+        }
+
+        BigDecimal result;
+        switch (currency) {
+            case "CNY":
+                result = new BigDecimal(String.valueOf(cachedCurrency.getCNY()));
+                break;
+            case "USD":
+                result = new BigDecimal(String.valueOf(cachedCurrency.getUSD()));
+                break;
+            case "EUR":
+                result = new BigDecimal(String.valueOf(cachedCurrency.getEUR()));
+                break;
+            default:
+                result = new BigDecimal(1);
+                break;
+        }
+        return result;
+    }
+
+    private void checkCurrency(String currency, ProductResponseWithCurrencyDto p) {
+        if (currency == null || currency.isBlank()) {
+            p.setCurrency("RUB");
+        } else {
+            currency = currency.toUpperCase();
+            if (currency.equals("CNY") || currency.equals("USD") || currency.equals("EUR")) {
+                p.setCurrency(currency);
+                p.setPrice(p.getPrice().divide(currencyMultiply(currency), RoundingMode.HALF_UP));
+            } else {
+                p.setCurrency("RUB");
+            }
+        }
+    }
     /**
      * method for creating a new product based on users dto
      * @param createProductDto - product received from the user
@@ -178,17 +218,22 @@ public class ProductService {
      * @return List Product DTOs
      */
     @Transactional
-    @MethodExecutionTime
-    public List<ProductResponseDto> getAll(PageRequest pageRequest) {
+    public List<ProductResponseWithCurrencyDto> getAll(PageRequest pageRequest, String currency) {
         log.info("getting all products");
         log.debug("getting all products");
 
         List<Product> products = productRepository.findAll(pageRequest).getContent();
-        List<ProductResponseDto> productResponseDtos = new ArrayList<>();
+        List<ProductResponseWithCurrencyDto> productResponseDtos = new ArrayList<>();
 
         for (Product p: products){
-            productResponseDtos.add(mapper.map(p, ProductResponseDto.class));
+            productResponseDtos.add(mapper.map(p, ProductResponseWithCurrencyDto.class));
         }
+
+        for (ProductResponseWithCurrencyDto p : productResponseDtos) {
+            checkCurrency(currency, p);
+        }
+
+
 
         log.info("All products received");
         log.debug("All products received");
@@ -201,70 +246,18 @@ public class ProductService {
      * @return Product DTO by user specified id
      */
     @Transactional
-    public ProductResponseDto getById(UUID id) {
+    public ProductResponseWithCurrencyDto getById(UUID id, String currency) {
         log.info("Getting product by id");
         log.debug("Getting product by id {}", id);
-
         if (productRepository.findById(id).isPresent()) {
-            return mapper.map(productRepository.findById(id), ProductResponseDto.class);
+            ProductResponseWithCurrencyDto productResponseDto = mapper.map(productRepository.findById(id), ProductResponseWithCurrencyDto.class);
+
+            checkCurrency(currency, productResponseDto);
+
+            return productResponseDto;
         }
         else throw new InvalidEntityDataException("Ошибка: указанный id не существует", "INCORRECT_ID", HttpStatus.NOT_FOUND);
     }
 
-    @Transactional
-    public List<ProductResponseDto> criterialSearch(PageRequest pageRequest, List<CriteriaSerchDto> criteriaDto) {
-        log.info("criterial search");
 
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Product> query = builder.createQuery(Product.class);
-        Root<Product> root = query.from(Product.class);
-        query.select(root);
-
-        Predicate predicate = builder.conjunction();
-
-        for (CriteriaSerchDto d : criteriaDto) {
-            Expression<? extends Comparable> fieldExpression = root.get(d.getField());
-            Comparable value = (Comparable) d.getValue();
-
-            switch (d.getOperation()) {
-                case ">=":
-                case "GRATER_THAN_OR_EQ":
-                    predicate = builder.and(predicate, builder.greaterThanOrEqualTo(fieldExpression, value));
-                    break;
-                case "<=":
-                case "LESS_THAN_OR_EQ":
-                    predicate = builder.and(predicate, builder.lessThanOrEqualTo(fieldExpression, value));
-                    break;
-                case "=":
-                case "EQUALS":
-                    predicate = builder.and(predicate, builder.equal(fieldExpression, value));
-                    break;
-                case "~":
-                case "LIKE":
-                    Predicate condition;
-                    if (fieldExpression.getJavaType() == BigDecimal.class || fieldExpression.getJavaType() == Integer.class) {
-                        Comparable lowerValue = value instanceof BigDecimal ? ((BigDecimal) value).subtract(BigDecimal.TEN) : (int) value - 10;
-                        Comparable upperValue = value instanceof BigDecimal ? ((BigDecimal) value).add(BigDecimal.TEN) : (int) value + 10;
-                        condition = builder.between(fieldExpression, lowerValue, upperValue);
-                    } else {
-                        condition = builder.like(root.get(d.getField()).as(String.class), "%" + d.getValue() + "%");
-                    }
-                    predicate = builder.and(predicate, condition);
-                    break;
-            }
-        }
-
-        query.where(predicate);
-
-        TypedQuery<Product> typedQuery = entityManager.createQuery(query);
-        typedQuery.setFirstResult(pageRequest.getPageNumber() * pageRequest.getPageSize());
-        typedQuery.setMaxResults(pageRequest.getPageSize());
-
-        List<Product> products = typedQuery.getResultList();
-        List<ProductResponseDto> productResponseDtos = products.stream()
-                .map(p -> mapper.map(p, ProductResponseDto.class))
-                .collect(Collectors.toList());
-
-        return productResponseDtos;
-    }
 }

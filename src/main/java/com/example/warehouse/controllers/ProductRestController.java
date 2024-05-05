@@ -53,10 +53,11 @@ public class ProductRestController {
      * @return new Response Entity with the return value of the get all method and the ok status
      */
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<ProductResponseDto>> getAll(@RequestParam (required = false, defaultValue = "0") int page,
-                                                   @RequestParam (required = false, defaultValue = "20") int size) {
+    public ResponseEntity<List<ProductResponseWithCurrencyDto>> getAll(@RequestParam (required = false, defaultValue = "0") int page,
+                                                                       @RequestParam (required = false, defaultValue = "20") int size,
+                                                                       @RequestHeader (required = false) String currency) {
 
-        return new ResponseEntity<>(productService.getAll(PageRequest.of(page, size)), OK);
+        return new ResponseEntity<>(productService.getAll(PageRequest.of(page, size), currency), OK);
     }
 
     /**
@@ -65,8 +66,8 @@ public class ProductRestController {
      * @return new Response Entity with the return value of the get by id method and the ok status
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseEntity<ProductResponseDto> getById(@PathVariable("id") UUID id){
-        return new ResponseEntity<>(productService.getById(id), OK);
+    public ResponseEntity<ProductResponseWithCurrencyDto> getById(@PathVariable("id") UUID id, @RequestHeader (required = false) String currency){
+        return new ResponseEntity<>(productService.getById(id, currency), OK);
     }
 
     /**
@@ -78,17 +79,5 @@ public class ProductRestController {
     public ResponseEntity<Object> deleteById(@PathVariable("id") UUID id) {
         productService.removeById(id);
         return new ResponseEntity<>(NO_CONTENT);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, value = "/cr")
-    public ResponseEntity<List<ProductResponseDto>> criterialSearch(@RequestParam (required = false, defaultValue = "0") int page,
-                                                                   @RequestParam (required = false, defaultValue = "20") int size,
-                                                                   @RequestBody List<CriteriaSerchDto> criteriaDto) {
-
-
-        return new ResponseEntity<>(productService.criterialSearch(PageRequest.of(page, size), criteriaDto), OK) ;
-
-
-
     }
 }
