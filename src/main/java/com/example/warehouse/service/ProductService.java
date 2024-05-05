@@ -1,12 +1,14 @@
 package com.example.warehouse.service;
 
 import com.example.warehouse.dao.ProductRepository;
-import com.example.warehouse.dto.CreateProductDto;
-import com.example.warehouse.dto.ProductDto;
-import com.example.warehouse.dto.ProductResponseDto;
-import com.example.warehouse.dto.UpdateProductDto;
+import com.example.warehouse.dto.*;
+import com.example.warehouse.entities.Currency;
 import com.example.warehouse.entities.Product;
 import com.example.warehouse.exceptions.InvalidEntityDataException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -15,12 +17,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author Dmitriy
@@ -36,9 +40,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProductService {
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     private final ProductRepository productRepository;
 
     private final ModelMapper mapper;
+
+    private final CurrencyServiceClient currencyServiceClient;
+    private Currency cachedCurrency;
 
     /**
      * Validation method, checks input DTO
@@ -50,7 +60,7 @@ public class ProductService {
             throw new InvalidEntityDataException("Указанный артикул уже существует", "INCORRECT_ARTICLE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        if (productDto.getArticle() == null || productDto.getArticle().isBlank()) {
+        if (productDto.getArticle() == null) {
             log.error("received incorrect article");
             throw new InvalidEntityDataException("Некорректный артикул: Проверьте правильность ввода и повторите попытку.", "INCORRECT_ARTICLE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -69,7 +79,7 @@ public class ProductService {
             throw new InvalidEntityDataException("Некорректное описание: Проверьте правильность ввода и повторите попытку.", "INCORRECT_DESCRIPTION", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        if (productDto.getPrice() <= 0) {
+        if (productDto.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
             log.error("received incorrect price, <= 0");
             throw new InvalidEntityDataException("Некорректная цена: Проверьте правильность ввода и повторите попытку.", "INCORRECT_PRICE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -80,6 +90,42 @@ public class ProductService {
         }
     }
 
+    private BigDecimal currencyMultiply(String currency) {
+        if (cachedCurrency == null) {
+            cachedCurrency = currencyServiceClient.getWithCurrency();
+        }
+
+        BigDecimal result;
+        switch (currency) {
+            case "CNY":
+                result = new BigDecimal(String.valueOf(cachedCurrency.getCNY()));
+                break;
+            case "USD":
+                result = new BigDecimal(String.valueOf(cachedCurrency.getUSD()));
+                break;
+            case "EUR":
+                result = new BigDecimal(String.valueOf(cachedCurrency.getEUR()));
+                break;
+            default:
+                result = new BigDecimal(1);
+                break;
+        }
+        return result;
+    }
+
+    private void checkCurrency(String currency, ProductResponseWithCurrencyDto p) {
+        if (currency == null || currency.isBlank()) {
+            p.setCurrency("RUB");
+        } else {
+            currency = currency.toUpperCase();
+            if (currency.equals("CNY") || currency.equals("USD") || currency.equals("EUR")) {
+                p.setCurrency(currency);
+                p.setPrice(p.getPrice().divide(currencyMultiply(currency), RoundingMode.HALF_UP));
+            } else {
+                p.setCurrency("RUB");
+            }
+        }
+    }
     /**
      * method for creating a new product based on users dto
      * @param createProductDto - product received from the user
@@ -92,14 +138,23 @@ public class ProductService {
 
         ProductDto productDto = mapper.map(createProductDto, ProductDto.class);
 
+
+        long dATA = System.currentTimeMillis()/1000;
+        Date date = new Date(dATA);
+        Timestamp timestamp = new Timestamp(dATA);
+        log.info(date.toString());
+        log.info(timestamp.toString());
+
         validation(productDto);
 
-        Date date = new Date();
-        Product product = mapper.map(productDto, Product.class);
-        product.setCreated(LocalDate.now());
-        product.setLastQuantityUpdate(new Timestamp(date.getTime()));
-        product = productRepository.save(product);
-        productDto = mapper.map(product, ProductDto.class);
+
+            Product product = mapper.map(productDto, Product.class);
+            product.setCreated(dATA);
+            product.setLastQuantityUpdate(dATA);
+            product = productRepository.save(product);
+            productDto = mapper.map(product, ProductDto.class);
+
+
 
         log.info("Product saved");
         log.debug("Product saved {}", productDto.toString());
@@ -122,8 +177,7 @@ public class ProductService {
 
             Product product = productRepository.findById(productDto.getId()).orElseThrow();
             if (product.getQuantity() != productDto.getQuantity()) {
-                Date currentDate = new Date();
-                product.setLastQuantityUpdate(new Timestamp(currentDate.getTime()));
+                product.setLastQuantityUpdate(System.currentTimeMillis()/1000);
             }
 
             product.setName(productDto.getName());
@@ -164,16 +218,22 @@ public class ProductService {
      * @return List Product DTOs
      */
     @Transactional
-    public List<ProductResponseDto> getAll(PageRequest pageRequest) {
+    public List<ProductResponseWithCurrencyDto> getAll(PageRequest pageRequest, String currency) {
         log.info("getting all products");
         log.debug("getting all products");
 
         List<Product> products = productRepository.findAll(pageRequest).getContent();
-        List<ProductResponseDto> productResponseDtos = new ArrayList<>();
+        List<ProductResponseWithCurrencyDto> productResponseDtos = new ArrayList<>();
 
         for (Product p: products){
-            productResponseDtos.add(mapper.map(p, ProductResponseDto.class));
+            productResponseDtos.add(mapper.map(p, ProductResponseWithCurrencyDto.class));
         }
+
+        for (ProductResponseWithCurrencyDto p : productResponseDtos) {
+            checkCurrency(currency, p);
+        }
+
+
 
         log.info("All products received");
         log.debug("All products received");
@@ -186,13 +246,18 @@ public class ProductService {
      * @return Product DTO by user specified id
      */
     @Transactional
-    public ProductResponseDto getById(UUID id) {
+    public ProductResponseWithCurrencyDto getById(UUID id, String currency) {
         log.info("Getting product by id");
         log.debug("Getting product by id {}", id);
-
         if (productRepository.findById(id).isPresent()) {
-            return mapper.map(productRepository.findById(id), ProductResponseDto.class);
+            ProductResponseWithCurrencyDto productResponseDto = mapper.map(productRepository.findById(id), ProductResponseWithCurrencyDto.class);
+
+            checkCurrency(currency, productResponseDto);
+
+            return productResponseDto;
         }
         else throw new InvalidEntityDataException("Ошибка: указанный id не существует", "INCORRECT_ID", HttpStatus.NOT_FOUND);
     }
+
+
 }

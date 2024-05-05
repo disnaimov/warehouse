@@ -1,9 +1,6 @@
 package com.example.warehouse.controllers;
 
-import com.example.warehouse.dto.CreateProductDto;
-import com.example.warehouse.dto.ProductDto;
-import com.example.warehouse.dto.ProductResponseDto;
-import com.example.warehouse.dto.UpdateProductDto;
+import com.example.warehouse.dto.*;
 import com.example.warehouse.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -56,10 +53,11 @@ public class ProductRestController {
      * @return new Response Entity with the return value of the get all method and the ok status
      */
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<ProductResponseDto>> getAll(@RequestParam (required = false, defaultValue = "0") int page,
-                                                   @RequestParam (required = false, defaultValue = "20") int size) {
+    public ResponseEntity<List<ProductResponseWithCurrencyDto>> getAll(@RequestParam (required = false, defaultValue = "0") int page,
+                                                                       @RequestParam (required = false, defaultValue = "20") int size,
+                                                                       @RequestHeader (required = false) String currency) {
 
-        return new ResponseEntity<>(productService.getAll(PageRequest.of(page, size)), OK);
+        return new ResponseEntity<>(productService.getAll(PageRequest.of(page, size), currency), OK);
     }
 
     /**
@@ -68,8 +66,8 @@ public class ProductRestController {
      * @return new Response Entity with the return value of the get by id method and the ok status
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseEntity<ProductResponseDto> getById(@PathVariable("id") UUID id){
-        return new ResponseEntity<>(productService.getById(id), OK);
+    public ResponseEntity<ProductResponseWithCurrencyDto> getById(@PathVariable("id") UUID id, @RequestHeader (required = false) String currency){
+        return new ResponseEntity<>(productService.getById(id, currency), OK);
     }
 
     /**
