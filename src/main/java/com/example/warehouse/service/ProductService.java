@@ -1,14 +1,21 @@
 package com.example.warehouse.service;
 
-import com.example.warehouse.annotation.MethodExecutionTime;
 import com.example.warehouse.dao.ProductRepository;
-import com.example.warehouse.dto.*;
+import com.example.warehouse.dto.CreateProductDto;
+import com.example.warehouse.dto.CriteriaSerchDto;
+import com.example.warehouse.dto.ProductDto;
+import com.example.warehouse.dto.ProductResponseDto;
+import com.example.warehouse.dto.UpdateProductDto;
 import com.example.warehouse.entities.Product;
 import com.example.warehouse.exceptions.InvalidEntityDataException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -178,7 +185,6 @@ public class ProductService {
      * @return List Product DTOs
      */
     @Transactional
-    @MethodExecutionTime
     public List<ProductResponseDto> getAll(PageRequest pageRequest) {
         log.info("getting all products");
         log.debug("getting all products");
