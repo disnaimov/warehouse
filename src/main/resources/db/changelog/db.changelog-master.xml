@@ -1,39 +1,13 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
-    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
-<changeSet id="create-product" author="Dmitriy">
-    <createTable tableName="products">
-        <column name="id" type="uuid">
-            <constraints primaryKey="true" nullable="false" unique="true"/>
-        </column>
-        <column name="name" type="text">
-            <constraints nullable="false"/>
-        </column>
-        <column name="article" type="text">
-            <constraints unique="true" nullable="false"/>
-        </column>
-        <column name="description" type="text">
-            <constraints nullable="false"/>
-        </column>
-        <column name="category" type="text">
-            <constraints nullable="false"/>
-        </column>
-        <column name="price" type="int">
-            <constraints nullable="false"/>
-        </column>
-        <column name="quantity" type="int">
-            <constraints nullable="false"/>
-        </column>
-        <column name="last_quantity_update" type="timestamp">
-            <constraints nullable="false"/>
-        </column>
-        <column name="creation_date" type="date">
-            <constraints nullable="false"/>
-        </column>
-    </createTable>
-</changeSet>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    
+    <changeSet id="0" author="Dmitriy">
+        <tagDatabase tag="db_init"/>
+    </changeSet>
+    
+    <include file="v-1.0/db.changelog-v.1.0.xml" relativeToChangelogFile="true" />
+    
+    <changeSet id="1" author="Dmitriy">
+        <tagDatabase tag="v.1.0"/>
+    </changeSet>
 </databaseChangeLog>
+

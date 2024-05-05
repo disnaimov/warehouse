@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: default
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.xml
@@ -13,5 +15,11 @@ spring:
     hibernate:
       ddl-auto: validate
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+app:
+  scheduling:
+    enabled: false  
+    optimization: true
+
 
 
