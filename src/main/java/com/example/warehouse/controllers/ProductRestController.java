@@ -79,16 +79,4 @@ public class ProductRestController {
         productService.removeById(id);
         return new ResponseEntity<>(NO_CONTENT);
     }
-
-    @RequestMapping(method = RequestMethod.GET, value = "/cr")
-    public ResponseEntity<List<ProductResponseDto>> criterialSearch(@RequestParam (required = false, defaultValue = "0") int page,
-                                                                   @RequestParam (required = false, defaultValue = "20") int size,
-                                                                   @RequestBody List<CriteriaSerchDto> criteriaDto) {
-
-
-        return new ResponseEntity<>(productService.criterialSearch(PageRequest.of(page, size), criteriaDto), OK) ;
-
-
-
-    }
 }

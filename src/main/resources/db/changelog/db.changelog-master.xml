@@ -9,5 +9,15 @@
     <changeSet id="1" author="Dmitriy">
         <tagDatabase tag="v.1.0"/>
     </changeSet>
+    
+    <changeSet id="5" author="Dmitriy">
+        <tagDatabase tag="product_update"/>
+    </changeSet>
+    
+    <include file="v-2.0/db.changelog-v.2.0.xml" relativeToChangelogFile="true" />
+    
+    <changeSet id="6" author="Dmitriy">
+        <tagDatabase tag="v.2.0"/>
+    </changeSet>
 </databaseChangeLog>
 

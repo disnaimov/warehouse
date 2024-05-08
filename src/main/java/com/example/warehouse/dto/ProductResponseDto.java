@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.UUID;
 
 /**
@@ -31,4 +29,5 @@ public class ProductResponseDto implements Serializable {
     private int quantity;
     private Long lastQuantityUpdate;
     private Long created;
+    private boolean isAvailable;
 }

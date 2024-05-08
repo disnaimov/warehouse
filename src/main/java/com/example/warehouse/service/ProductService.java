@@ -1,6 +1,5 @@
 package com.example.warehouse.service;
 
-import com.example.warehouse.annotation.MethodExecutionTime;
 import com.example.warehouse.dao.ProductRepository;
 import com.example.warehouse.dto.*;
 import com.example.warehouse.entities.Product;
@@ -80,8 +79,8 @@ public class ProductService {
             throw new InvalidEntityDataException("Некорректная цена: Проверьте правильность ввода и повторите попытку.", "INCORRECT_PRICE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        if (productDto.getQuantity() <= 0) {
-            log.error("received incorrect quantity, <= 0");
+        if (productDto.getQuantity() < 0) {
+            log.error("received incorrect quantity, = 0");
             throw new InvalidEntityDataException("Некорректное количество: Проверьте правильность ввода и повторите попытку.", "INCORRECT_QUANTITY", HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
@@ -111,6 +110,11 @@ public class ProductService {
             Product product = mapper.map(productDto, Product.class);
             product.setCreated(dATA);
             product.setLastQuantityUpdate(dATA);
+            if (productDto.getQuantity() == 0) {
+                product.setAvailable(false);
+            } else {
+                product.setAvailable(true);
+            }
             product = productRepository.save(product);
             productDto = mapper.map(product, ProductDto.class);
 
@@ -146,6 +150,12 @@ public class ProductService {
             product.setPrice(productDto.getPrice());
             product.setQuantity(productDto.getQuantity());
 
+            if (productDto.getQuantity() == 0) {
+                product.setAvailable(false);
+            } else {
+                product.setAvailable(true);
+            }
+
             product = productRepository.save(product);
             ProductResponseDto productResponseDto = mapper.map(product, ProductResponseDto.class);
 
@@ -178,7 +188,6 @@ public class ProductService {
      * @return List Product DTOs
      */
     @Transactional
-    @MethodExecutionTime
     public List<ProductResponseDto> getAll(PageRequest pageRequest) {
         log.info("getting all products");
         log.debug("getting all products");
@@ -209,62 +218,5 @@ public class ProductService {
             return mapper.map(productRepository.findById(id), ProductResponseDto.class);
         }
         else throw new InvalidEntityDataException("Ошибка: указанный id не существует", "INCORRECT_ID", HttpStatus.NOT_FOUND);
-    }
-
-    @Transactional
-    public List<ProductResponseDto> criterialSearch(PageRequest pageRequest, List<CriteriaSerchDto> criteriaDto) {
-        log.info("criterial search");
-
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Product> query = builder.createQuery(Product.class);
-        Root<Product> root = query.from(Product.class);
-        query.select(root);
-
-        Predicate predicate = builder.conjunction();
-
-        for (CriteriaSerchDto d : criteriaDto) {
-            Expression<? extends Comparable> fieldExpression = root.get(d.getField());
-            Comparable value = (Comparable) d.getValue();
-
-            switch (d.getOperation()) {
-                case ">=":
-                case "GRATER_THAN_OR_EQ":
-                    predicate = builder.and(predicate, builder.greaterThanOrEqualTo(fieldExpression, value));
-                    break;
-                case "<=":
-                case "LESS_THAN_OR_EQ":
-                    predicate = builder.and(predicate, builder.lessThanOrEqualTo(fieldExpression, value));
-                    break;
-                case "=":
-                case "EQUALS":
-                    predicate = builder.and(predicate, builder.equal(fieldExpression, value));
-                    break;
-                case "~":
-                case "LIKE":
-                    Predicate condition;
-                    if (fieldExpression.getJavaType() == BigDecimal.class || fieldExpression.getJavaType() == Integer.class) {
-                        Comparable lowerValue = value instanceof BigDecimal ? ((BigDecimal) value).subtract(BigDecimal.TEN) : (int) value - 10;
-                        Comparable upperValue = value instanceof BigDecimal ? ((BigDecimal) value).add(BigDecimal.TEN) : (int) value + 10;
-                        condition = builder.between(fieldExpression, lowerValue, upperValue);
-                    } else {
-                        condition = builder.like(root.get(d.getField()).as(String.class), "%" + d.getValue() + "%");
-                    }
-                    predicate = builder.and(predicate, condition);
-                    break;
-            }
-        }
-
-        query.where(predicate);
-
-        TypedQuery<Product> typedQuery = entityManager.createQuery(query);
-        typedQuery.setFirstResult(pageRequest.getPageNumber() * pageRequest.getPageSize());
-        typedQuery.setMaxResults(pageRequest.getPageSize());
-
-        List<Product> products = typedQuery.getResultList();
-        List<ProductResponseDto> productResponseDtos = products.stream()
-                .map(p -> mapper.map(p, ProductResponseDto.class))
-                .collect(Collectors.toList());
-
-        return productResponseDtos;
     }
 }
