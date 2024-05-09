@@ -1,5 +1,4 @@
 CREATE TABLE IF NOT EXISTS order_item (
-                                          id bytea NOT NULL,
                                           order_id UUID NOT NULL,
                                           product_id UUID NOT NULL,
                                           price NUMERIC NOT NULL,

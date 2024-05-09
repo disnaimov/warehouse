@@ -1,8 +1,8 @@
 package com.example.warehouse.entities;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -25,16 +25,15 @@ public class OrderItem implements Serializable {
     @Serial
     private static final long serialVersionUID = 9022292935489682294L;
 
-    @Id
-    @Column(name = "id", nullable = false, columnDefinition = "bytea")
+    @EmbeddedId
     private OrderItemId id;
 
     @ManyToOne
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", insertable = false, updatable = false)
     private Order order;
 
     @ManyToOne
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "product_id", insertable = false, updatable = false)
     private Product product;
 
     @Column(name = "price", nullable = false)

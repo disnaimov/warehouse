@@ -1,14 +1,19 @@
 package com.example.warehouse.entities;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
-
+@Embeddable
 public class OrderItemId implements Serializable {
     @Serial
     private static final long serialVersionUID = 9039682124054080797L;
+    @Column(name = "order_id")
     private UUID orderId;
+    @Column(name = "product_id")
     private UUID productId;
 
     public UUID getOrderId() {

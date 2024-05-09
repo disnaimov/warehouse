@@ -118,6 +118,10 @@ public class OrderService {
 
         for (ProductToOrderDto p : patchDto.getPatchOrders()) {
 
+            if (p.getQuantity() < 0) {
+                throw new InvalidEntityDataException("Ошибка: количество товара не может быть отрицательным для продукта с ID " + p.getId(), "NEGATIVE_PRODUCT_QUANTITY", HttpStatus.UNPROCESSABLE_ENTITY);
+            }
+
             Product product = productRepository.findById(p.getId()).orElseThrow(() -> new InvalidEntityDataException("Ошибка: переданного ID продукта" + p.getId() + " нет в заказе " + order.getId(), "INCORRECT_PRODUCT_ID", HttpStatus.UNPROCESSABLE_ENTITY));
             int availableQuantity = product.getQuantity();
             int requestedQuantity = p.getQuantity();
