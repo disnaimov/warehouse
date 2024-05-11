@@ -1,9 +1,6 @@
 package com.example.warehouse.controllers;
 
-import com.example.warehouse.dto.CreateProductDto;
-import com.example.warehouse.dto.ProductDto;
-import com.example.warehouse.dto.ProductResponseDto;
-import com.example.warehouse.dto.UpdateProductDto;
+import com.example.warehouse.dto.*;
 import com.example.warehouse.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
