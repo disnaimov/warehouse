@@ -1,12 +1,13 @@
 package com.example.warehouse.service;
 
 import com.example.warehouse.dao.ProductRepository;
-import com.example.warehouse.dto.CreateProductDto;
-import com.example.warehouse.dto.ProductDto;
-import com.example.warehouse.dto.ProductResponseDto;
-import com.example.warehouse.dto.UpdateProductDto;
+import com.example.warehouse.dto.*;
 import com.example.warehouse.entities.Product;
 import com.example.warehouse.exceptions.InvalidEntityDataException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -15,12 +16,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author Dmitriy
@@ -36,6 +38,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProductService {
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     private final ProductRepository productRepository;
 
     private final ModelMapper mapper;
@@ -50,7 +55,7 @@ public class ProductService {
             throw new InvalidEntityDataException("Указанный артикул уже существует", "INCORRECT_ARTICLE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        if (productDto.getArticle() == null || productDto.getArticle().isBlank()) {
+        if (productDto.getArticle() == null) {
             log.error("received incorrect article");
             throw new InvalidEntityDataException("Некорректный артикул: Проверьте правильность ввода и повторите попытку.", "INCORRECT_ARTICLE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -69,13 +74,13 @@ public class ProductService {
             throw new InvalidEntityDataException("Некорректное описание: Проверьте правильность ввода и повторите попытку.", "INCORRECT_DESCRIPTION", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        if (productDto.getPrice() <= 0) {
+        if (productDto.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
             log.error("received incorrect price, <= 0");
             throw new InvalidEntityDataException("Некорректная цена: Проверьте правильность ввода и повторите попытку.", "INCORRECT_PRICE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        if (productDto.getQuantity() <= 0) {
-            log.error("received incorrect quantity, <= 0");
+        if (productDto.getQuantity() < 0) {
+            log.error("received incorrect quantity, = 0");
             throw new InvalidEntityDataException("Некорректное количество: Проверьте правильность ввода и повторите попытку.", "INCORRECT_QUANTITY", HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
@@ -92,14 +97,28 @@ public class ProductService {
 
         ProductDto productDto = mapper.map(createProductDto, ProductDto.class);
 
+
+        long dATA = System.currentTimeMillis()/1000;
+        Date date = new Date(dATA);
+        Timestamp timestamp = new Timestamp(dATA);
+        log.info(date.toString());
+        log.info(timestamp.toString());
+
         validation(productDto);
 
-        Date date = new Date();
-        Product product = mapper.map(productDto, Product.class);
-        product.setCreated(LocalDate.now());
-        product.setLastQuantityUpdate(new Timestamp(date.getTime()));
-        product = productRepository.save(product);
-        productDto = mapper.map(product, ProductDto.class);
+
+            Product product = mapper.map(productDto, Product.class);
+            product.setCreated(dATA);
+            product.setLastQuantityUpdate(dATA);
+            if (productDto.getQuantity() == 0) {
+                product.setAvailable(false);
+            } else {
+                product.setAvailable(true);
+            }
+            product = productRepository.save(product);
+            productDto = mapper.map(product, ProductDto.class);
+
+
 
         log.info("Product saved");
         log.debug("Product saved {}", productDto.toString());
@@ -122,8 +141,7 @@ public class ProductService {
 
             Product product = productRepository.findById(productDto.getId()).orElseThrow();
             if (product.getQuantity() != productDto.getQuantity()) {
-                Date currentDate = new Date();
-                product.setLastQuantityUpdate(new Timestamp(currentDate.getTime()));
+                product.setLastQuantityUpdate(System.currentTimeMillis()/1000);
             }
 
             product.setName(productDto.getName());
@@ -131,6 +149,12 @@ public class ProductService {
             product.setCategory(productDto.getCategory());
             product.setPrice(productDto.getPrice());
             product.setQuantity(productDto.getQuantity());
+
+            if (productDto.getQuantity() == 0) {
+                product.setAvailable(false);
+            } else {
+                product.setAvailable(true);
+            }
 
             product = productRepository.save(product);
             ProductResponseDto productResponseDto = mapper.map(product, ProductResponseDto.class);
