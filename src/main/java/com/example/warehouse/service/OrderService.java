@@ -5,13 +5,14 @@ import com.example.warehouse.dao.OrderItemRepository;
 import com.example.warehouse.dao.OrderRepository;
 import com.example.warehouse.dao.ProductRepository;
 import com.example.warehouse.dto.CreateOrderDto;
-import com.example.warehouse.dto.OrderDto;
 import com.example.warehouse.dto.OrderGetByIdDto;
 import com.example.warehouse.dto.PatchOrderDto;
 import com.example.warehouse.dto.ProductToGetOrderByIdDto;
 import com.example.warehouse.dto.ProductToOrderDto;
 import com.example.warehouse.entities.Customer;
+import com.example.warehouse.entities.CustomerInfo;
 import com.example.warehouse.entities.Order;
+import com.example.warehouse.entities.OrderInfo;
 import com.example.warehouse.entities.OrderItem;
 import com.example.warehouse.entities.OrderItemId;
 import com.example.warehouse.entities.Product;
@@ -19,17 +20,21 @@ import com.example.warehouse.enums.OrderStatus;
 import com.example.warehouse.exceptions.InvalidEntityDataException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -40,6 +45,7 @@ public class OrderService {
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
     private final OrderItemRepository orderItemRepository;
+    private final WebClient webClient;
 
     private static BigDecimal getTotalPrice(ProductToOrderDto p, Product product) {
         if (product.getQuantity() < p.getQuantity() || p.getQuantity() < 0) {
@@ -233,4 +239,80 @@ public class OrderService {
         return order.getStatus();
     }
 
+    public Map<String, String> getAccountNumber(List<String> logins) {
+
+        return webClient.post()
+                .uri("/account/number")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(logins)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, String>>() {})
+                .block();
+    }
+
+    public Map<String, String> getAccountInn(List<String> logins) {
+
+        return webClient.post()
+                .uri("/account/inn")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(logins)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, String>>() {})
+                .block();
+    }
+
+    public Map<UUID, List<OrderInfo>> method() {
+        List<Order> orders = orderRepository.findAll();
+
+        return orders.stream()
+                .filter(order -> order.getStatus().equals(OrderStatus.CREATED) || order.getStatus().equals(OrderStatus.CONFIRMED))
+                .flatMap(order -> {
+                    List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
+
+                    return orderItems.stream()
+                            .map(orderItem -> {
+                                Product product = productRepository.findById(orderItem.getProduct().getId()).orElseThrow();
+
+                                Customer customer = order.getCustomer();
+
+                                OrderInfo orderInfo = new OrderInfo();
+                                orderInfo.setId(order.getId());
+                                orderInfo.setStatus(order.getStatus());
+                                orderInfo.setDeliveryAddress(order.getDeliveryAddress());
+
+                                CustomerInfo customerInfo = new CustomerInfo();
+                                customerInfo.setId(customer.getId());
+                                customerInfo.setEmail(customer.getEmail());
+
+                                List<String> logins = new ArrayList<>();
+                                logins.add(customer.getLogin());
+
+                                Map<String, String> accountNumberMap = getAccountNumber(logins);
+                                String accountNumber = accountNumberMap.get(customer.getLogin());
+                                customerInfo.setAccountNumber(accountNumber);
+
+                                Map<String, String> accountInnMap = getAccountInn(logins);
+                                String inn = accountInnMap.get(customer.getLogin());
+                                customerInfo.setInn(inn);
+
+                                OrderInfo productOrderInfo = new OrderInfo();
+                                productOrderInfo.setId(product.getId());
+                                productOrderInfo.setStatus(order.getStatus());
+                                productOrderInfo.setDeliveryAddress(order.getDeliveryAddress());
+                                productOrderInfo.setQuantity(orderItem.getQuantity());
+
+                                CustomerInfo productCustomerInfo = new CustomerInfo();
+                                productCustomerInfo.setId(customer.getId());
+                                productCustomerInfo.setEmail(customer.getEmail());
+                                productCustomerInfo.setAccountNumber(accountNumber);
+                                productCustomerInfo.setInn(inn);
+
+                                productOrderInfo.setCustomer(productCustomerInfo);
+
+
+                                return Map.entry(product.getId(), productOrderInfo);
+                            });
+                })
+                .collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+    }
 }
