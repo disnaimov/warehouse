@@ -1,14 +1,19 @@
 package com.example.warehouse.entities;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.sql.Timestamp;
-import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
@@ -18,7 +23,7 @@ import java.util.UUID;
  * This is product entity class with property ID, name, article, description, category, price, quantity,
  * last quantity update, created
  */
-@Table(name = "products")
+@Table(name = "product")
 @Entity
 @Data
 @AllArgsConstructor
@@ -37,7 +42,7 @@ public class Product implements Serializable {
     private String name;
 
     @Column(name = "article", nullable = false, unique = true)
-    private String article;
+    private UUID article;
 
     @Column(name = "description", nullable = false)
     private String description;
@@ -46,14 +51,18 @@ public class Product implements Serializable {
     private String category;
 
     @Column(name = "price", nullable = false)
-    private int price;
+    private BigDecimal price;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
     @Column(name = "last_quantity_update", nullable = false)
-    private Timestamp lastQuantityUpdate;
+    private Long lastQuantityUpdate;
 
     @Column(name = "creation_date", nullable = false)
-    private LocalDate created;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private Long created;
+
+    @Column(name = "is_available")
+    private boolean isAvailable;
 }
