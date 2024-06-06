@@ -2,13 +2,18 @@ package com.example.warehouse.controllers;
 
 import com.example.warehouse.dto.*;
 import com.example.warehouse.service.ProductService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import java.util.zip.ZipOutputStream;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -87,8 +92,33 @@ public class ProductRestController {
 
 
         return new ResponseEntity<>(productService.criterialSearch(PageRequest.of(page, size), criteriaDto), OK) ;
+    }
 
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("productId") UUID productId) {
+        try {
+            productService.uploadFile(file, productId);
+            return ResponseEntity.ok("File uploaded successfully");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file: " + e.getMessage());
+        }
+    }
 
+    @GetMapping("/download/{productId}")
+    public void downloadFilesForProduct(@PathVariable UUID productId, HttpServletResponse response) throws IOException {
+        try {
+            response.setContentType("application/zip");
+            response.setHeader("Content-Disposition", "attachment; filename=\"product_files.zip\"");
 
+            try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
+                productService.downloadFilesForProduct(productId, zos);
+            } catch (IOException e) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.getWriter().write("Failed to create zip file: " + e.getMessage());
+            }
+        } catch (IOException e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("Failed to download files: " + e.getMessage());
+        }
     }
 }

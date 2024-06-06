@@ -22,4 +22,11 @@ app:
     optimization: true
 
 
+aws:
+  accessKey: test
+  secretKey: test
+  region: us-east-1
+  endpointUrl: your_s3_endpoint_url
+
+
 

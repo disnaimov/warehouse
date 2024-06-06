@@ -1,9 +1,14 @@
 package com.example.warehouse.service;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.S3Object;
 import com.example.warehouse.annotation.MethodExecutionTime;
+import com.example.warehouse.dao.ProductInfoRepository;
 import com.example.warehouse.dao.ProductRepository;
 import com.example.warehouse.dto.*;
 import com.example.warehouse.entities.Product;
+import com.example.warehouse.entities.ProductInfo;
 import com.example.warehouse.exceptions.InvalidEntityDataException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -11,12 +16,16 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.entity.FileEntity;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -24,6 +33,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * @author Dmitriy
@@ -45,6 +56,10 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     private final ModelMapper mapper;
+
+    private final ProductInfoRepository productInfoRepository;
+
+    private final AmazonS3 s3Client;
 
     /**
      * Validation method, checks input DTO
@@ -267,4 +282,37 @@ public class ProductService {
 
         return productResponseDtos;
     }
+
+    public void uploadFile(MultipartFile file, UUID productId) throws IOException {
+        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+
+        s3Client.putObject("new-bucket-01197bee", fileName, file.getInputStream(), new ObjectMetadata());
+
+        ProductInfo productInfo = new ProductInfo(productId, fileName);
+        productInfoRepository.save(productInfo);
+    }
+
+    public void downloadFilesForProduct(UUID productId, ZipOutputStream zos) throws IOException {
+        List<ProductInfo> productInfos = productInfoRepository.findAllById(productId);
+
+        for (ProductInfo info : productInfos) {
+            ZipEntry zipEntry = new ZipEntry(info.getProductName());
+            zos.putNextEntry(zipEntry);
+
+            S3Object s3Object = s3Client.getObject("bucketName", String.valueOf(info.getProductFileId()));
+            InputStream fileInputStream = s3Object.getObjectContent();
+
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = fileInputStream.read(buffer)) > 0) {
+                zos.write(buffer, 0, len);
+            }
+
+            zos.closeEntry();
+            fileInputStream.close();
+        }
+
+        zos.finish();
+    }
+
 }
