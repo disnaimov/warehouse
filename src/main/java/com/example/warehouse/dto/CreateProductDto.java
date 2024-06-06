@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.UUID;
 
 /**
  * @author Dmitriy
@@ -20,9 +22,9 @@ public class CreateProductDto implements Serializable {
     @Serial
     private static final long serialVersionUID = -128320876775080239L;
     private String name;
-    private String article;
+    private UUID article;
     private String description;
     private String category;
-    private int price;
+    private BigDecimal price;
     private int quantity;
 }
