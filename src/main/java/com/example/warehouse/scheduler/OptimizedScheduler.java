@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedWriter;
@@ -20,7 +19,6 @@ import java.math.RoundingMode;
 import java.util.List;
 
 @Component
-@EnableScheduling
 @RequiredArgsConstructor
 @Slf4j
 public class OptimizedScheduler {

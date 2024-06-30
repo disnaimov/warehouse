@@ -14,7 +14,7 @@ import org.springframework.util.StopWatch;
 public class ExecutionTimeAspect {
 
     @Around("@annotation(com.example.warehouse.annotation.MethodExecutionTime)")
-    public Object msE(ProceedingJoinPoint joinPoint) throws Throwable {
+    public Object methodTimeExecute(ProceedingJoinPoint joinPoint) throws Throwable {
         final MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         final String className = methodSignature.getDeclaringTypeName();
         final String methodName = methodSignature.getName();
@@ -30,20 +30,5 @@ public class ExecutionTimeAspect {
         }
     }
 
-    @Around("@annotation(org.springframework.transaction.annotation.Transactional)")
-    public Object transCheck(ProceedingJoinPoint joinPoint) throws Throwable {
-        final MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
-        final String className = methodSignature.getDeclaringTypeName();
-        final String methodName = methodSignature.getName();
 
-        final StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-
-        try {
-            return joinPoint.proceed();
-        } finally {
-            stopWatch.stop();
-            log.info("Execution time for @Transactional method " + className + "." + methodName + " :: " + stopWatch.getTotalTimeMillis() + " ms");
-        }
-    }
 }
