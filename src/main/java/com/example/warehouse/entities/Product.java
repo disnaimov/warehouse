@@ -52,7 +52,7 @@ public class Product implements Serializable {
     @Column(name = "category", nullable = false)
     private String category;
 
-    @Column(name = "price", nullable = false)
+    @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
     @Column(name = "quantity", nullable = false)
