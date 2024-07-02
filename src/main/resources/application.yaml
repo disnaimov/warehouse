@@ -19,7 +19,7 @@ spring:
 app:
   scheduling:
     enabled: true
-    optimization: true
+    optimization: super
     value: 10
 
 
