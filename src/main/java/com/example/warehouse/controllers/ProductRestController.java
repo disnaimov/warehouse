@@ -1,6 +1,7 @@
 package com.example.warehouse.controllers;
 
 import com.example.warehouse.dto.*;
+import com.example.warehouse.search.criteria.SearchCriteria;
 import com.example.warehouse.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -81,14 +82,10 @@ public class ProductRestController {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/cr")
-    public ResponseEntity<List<ProductResponseDto>> criterialSearch(@RequestParam (required = false, defaultValue = "0") int page,
-                                                                   @RequestParam (required = false, defaultValue = "20") int size,
-                                                                   @RequestBody List<CriteriaSerchDto> criteriaDto) {
+    public ResponseEntity<List<ProductResponseDto>> criteriaSearch(@RequestParam(required = false, defaultValue = "0") int page,
+                                                                   @RequestParam(required = false, defaultValue = "20") int size,
+                                                                   @RequestBody List<SearchCriteria> criteriaDto) {
 
-
-        return new ResponseEntity<>(productService.criterialSearch(PageRequest.of(page, size), criteriaDto), OK) ;
-
-
-
+        return new ResponseEntity<>(productService.criteriaSearch(PageRequest.of(page, size), criteriaDto), OK);
     }
 }

@@ -15,3 +15,12 @@ spring:
     hibernate:
       ddl-auto: validate
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+app:
+  scheduling:
+    enabled: false
+    optimization: super
+    value: 10
+
+
+

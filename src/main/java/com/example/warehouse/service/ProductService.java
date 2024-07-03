@@ -2,23 +2,17 @@ package com.example.warehouse.service;
 
 import com.example.warehouse.dao.ProductRepository;
 import com.example.warehouse.dto.CreateProductDto;
-import com.example.warehouse.dto.CriteriaSerchDto;
 import com.example.warehouse.dto.ProductDto;
 import com.example.warehouse.dto.ProductResponseDto;
 import com.example.warehouse.dto.UpdateProductDto;
 import com.example.warehouse.entities.Product;
 import com.example.warehouse.exceptions.InvalidEntityDataException;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import com.example.warehouse.search.ProductSpecification;
+import com.example.warehouse.search.criteria.SearchCriteria;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -45,9 +39,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class ProductService {
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     private final ProductRepository productRepository;
 
@@ -218,59 +209,14 @@ public class ProductService {
     }
 
     @Transactional
-    public List<ProductResponseDto> criterialSearch(PageRequest pageRequest, List<CriteriaSerchDto> criteriaDto) {
-        log.info("criterial search");
+    public List<ProductResponseDto> criteriaSearch(PageRequest pageRequest, List<SearchCriteria> searchCriteria) {
+        log.info("criteria search");
 
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Product> query = builder.createQuery(Product.class);
-        Root<Product> root = query.from(Product.class);
-        query.select(root);
+        final ProductSpecification specification = new ProductSpecification(searchCriteria);
+        final Page<Product> products = productRepository.findAll(specification, pageRequest);
 
-        Predicate predicate = builder.conjunction();
-
-        for (CriteriaSerchDto d : criteriaDto) {
-            Expression<? extends Comparable> fieldExpression = root.get(d.getField());
-            Comparable value = (Comparable) d.getValue();
-
-            switch (d.getOperation()) {
-                case ">=":
-                case "GRATER_THAN_OR_EQ":
-                    predicate = builder.and(predicate, builder.greaterThanOrEqualTo(fieldExpression, value));
-                    break;
-                case "<=":
-                case "LESS_THAN_OR_EQ":
-                    predicate = builder.and(predicate, builder.lessThanOrEqualTo(fieldExpression, value));
-                    break;
-                case "=":
-                case "EQUALS":
-                    predicate = builder.and(predicate, builder.equal(fieldExpression, value));
-                    break;
-                case "~":
-                case "LIKE":
-                    Predicate condition;
-                    if (fieldExpression.getJavaType() == BigDecimal.class || fieldExpression.getJavaType() == Integer.class) {
-                        Comparable lowerValue = value instanceof BigDecimal ? ((BigDecimal) value).subtract(BigDecimal.TEN) : (int) value - 10;
-                        Comparable upperValue = value instanceof BigDecimal ? ((BigDecimal) value).add(BigDecimal.TEN) : (int) value + 10;
-                        condition = builder.between(fieldExpression, lowerValue, upperValue);
-                    } else {
-                        condition = builder.like(root.get(d.getField()).as(String.class), "%" + d.getValue() + "%");
-                    }
-                    predicate = builder.and(predicate, condition);
-                    break;
-            }
-        }
-
-        query.where(predicate);
-
-        TypedQuery<Product> typedQuery = entityManager.createQuery(query);
-        typedQuery.setFirstResult(pageRequest.getPageNumber() * pageRequest.getPageSize());
-        typedQuery.setMaxResults(pageRequest.getPageSize());
-
-        List<Product> products = typedQuery.getResultList();
-        List<ProductResponseDto> productResponseDtos = products.stream()
-                .map(p -> mapper.map(p, ProductResponseDto.class))
+        return products.getContent().stream()
+                .map(product -> mapper.map(product, ProductResponseDto.class))
                 .collect(Collectors.toList());
-
-        return productResponseDtos;
     }
 }
