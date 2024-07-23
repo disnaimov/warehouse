@@ -1,5 +1,6 @@
 package com.example.warehouse.dto;
 
+import com.example.warehouse.entities.Currency;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,5 +26,5 @@ public class ProductResponseWithCurrencyDto implements Serializable {
     private int quantity;
     private Long lastQuantityUpdate;
     private Long created;
-    private String currency;
+    private Currency currency;
 }

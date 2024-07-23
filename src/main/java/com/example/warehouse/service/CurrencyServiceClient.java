@@ -1,7 +1,7 @@
 package com.example.warehouse.service;
 
-import com.example.warehouse.entities.Currency;
+import com.example.warehouse.entities.ExchangeRate;
 
 public interface CurrencyServiceClient {
-    Currency getWithCurrency();
+    ExchangeRate getExchangeRate();
 }
