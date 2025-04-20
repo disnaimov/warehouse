@@ -1,5 +1,6 @@
 package com.example.warehouse.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -37,7 +39,7 @@ public class Product implements Serializable {
     private String name;
 
     @Column(name = "article", nullable = false, unique = true)
-    private String article;
+    private UUID article;
 
     @Column(name = "description", nullable = false)
     private String description;
@@ -46,14 +48,15 @@ public class Product implements Serializable {
     private String category;
 
     @Column(name = "price", nullable = false)
-    private int price;
+    private BigDecimal price;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
     @Column(name = "last_quantity_update", nullable = false)
-    private Timestamp lastQuantityUpdate;
+    private Long lastQuantityUpdate;
 
     @Column(name = "creation_date", nullable = false)
-    private LocalDate created;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private Long created;
 }

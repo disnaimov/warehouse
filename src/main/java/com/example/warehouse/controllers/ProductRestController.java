@@ -1,6 +1,7 @@
 package com.example.warehouse.controllers;
 
-import com.example.warehouse.dto.ProductDto;
+import com.example.warehouse.dto.*;
+import com.example.warehouse.search.criteria.SearchCriteria;
 import com.example.warehouse.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -10,8 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 
 /**
  * @author Dmitriy
@@ -29,22 +29,22 @@ public class ProductRestController {
 
     /**
      * Create a new product with parameters received from the user using product service
-     * @param productDto - product DTO received from the user
+     * @param createProductDto - product DTO received from the user
      * @return new Response Entity with the return value of the create method and the created status
      */
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<ProductDto> create(@RequestBody ProductDto productDto) {
-        return new ResponseEntity<>(productService.create(productDto), CREATED);
+    public ResponseEntity<UUID> create(@RequestBody CreateProductDto createProductDto) {
+        return new ResponseEntity<>(productService.create(createProductDto), CREATED);
     }
 
     /**
      *Update product using user-supplied parameters
-     * @param productDto - product DTO received from the user
+     * @param updateProductDto - product DTO received from the user
      * @return new Response Entity with the return value of the update method and the ok status
      */
     @RequestMapping(method = RequestMethod.PUT)
-    public ResponseEntity<ProductDto> update(@RequestBody ProductDto productDto) {
-        return new ResponseEntity<>(productService.update(productDto), OK);
+    public ResponseEntity<ProductResponseDto> update(@RequestBody UpdateProductDto updateProductDto) {
+        return new ResponseEntity<>(productService.update(updateProductDto), OK);
     }
 
     /**
@@ -54,7 +54,7 @@ public class ProductRestController {
      * @return new Response Entity with the return value of the get all method and the ok status
      */
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<ProductDto>> getAll(@RequestParam (required = false, defaultValue = "0") int page,
+    public ResponseEntity<List<ProductResponseDto>> getAll(@RequestParam (required = false, defaultValue = "0") int page,
                                                    @RequestParam (required = false, defaultValue = "20") int size) {
 
         return new ResponseEntity<>(productService.getAll(PageRequest.of(page, size)), OK);
@@ -66,7 +66,7 @@ public class ProductRestController {
      * @return new Response Entity with the return value of the get by id method and the ok status
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseEntity<ProductDto> getById(@PathVariable("id") UUID id){
+    public ResponseEntity<ProductResponseDto> getById(@PathVariable("id") UUID id){
         return new ResponseEntity<>(productService.getById(id), OK);
     }
 
@@ -78,6 +78,14 @@ public class ProductRestController {
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<Object> deleteById(@PathVariable("id") UUID id) {
         productService.removeById(id);
-        return new ResponseEntity<>(OK);
+        return new ResponseEntity<>(NO_CONTENT);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/cr")
+    public ResponseEntity<List<ProductResponseDto>> criteriaSearch(@RequestParam(required = false, defaultValue = "0") int page,
+                                                                   @RequestParam(required = false, defaultValue = "20") int size,
+                                                                   @RequestBody List<SearchCriteria> criteriaDto) {
+
+        return new ResponseEntity<>(productService.criteriaSearch(PageRequest.of(page, size), criteriaDto), OK);
     }
 }
