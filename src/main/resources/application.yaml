@@ -17,6 +17,9 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
 
+kafka:
+  bootstrapAddress: localhost:9092
+  groupId: group1
 account:
   service:
     url: http://localhost:8082
