@@ -1,6 +1,4 @@
 spring:
-  profiles:
-    active: default
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.xml
@@ -15,14 +13,11 @@ spring:
     hibernate:
       ddl-auto: validate
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: true
 
-account:
-  service:
-    url: http://localhost:8082
-    
-app:
-  scheduling:
-    enabled: false
-    optimization: super
-    value: 10
+currency-service:
+  host: http://localhost:8082
+  methods:
+    get-currency: /currency
+
+
+
