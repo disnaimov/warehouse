@@ -17,6 +17,10 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
 
+account:
+  service:
+    url: http://localhost:8082
+    
 app:
   scheduling:
     enabled: false
