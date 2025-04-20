@@ -1,5 +1,6 @@
 package com.example.warehouse.service;
 
+import com.example.warehouse.annotation.MethodExecutionTime;
 import com.example.warehouse.dao.ProductRepository;
 import com.example.warehouse.dto.CreateProductDto;
 import com.example.warehouse.dto.ProductDto;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -50,7 +52,7 @@ public class ProductService {
             throw new InvalidEntityDataException("Указанный артикул уже существует", "INCORRECT_ARTICLE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        if (productDto.getArticle() == null || productDto.getArticle().isBlank()) {
+        if (productDto.getArticle() == null) {
             log.error("received incorrect article");
             throw new InvalidEntityDataException("Некорректный артикул: Проверьте правильность ввода и повторите попытку.", "INCORRECT_ARTICLE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -69,7 +71,7 @@ public class ProductService {
             throw new InvalidEntityDataException("Некорректное описание: Проверьте правильность ввода и повторите попытку.", "INCORRECT_DESCRIPTION", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        if (productDto.getPrice() <= 0) {
+        if (productDto.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
             log.error("received incorrect price, <= 0");
             throw new InvalidEntityDataException("Некорректная цена: Проверьте правильность ввода и повторите попытку.", "INCORRECT_PRICE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -164,6 +166,7 @@ public class ProductService {
      * @return List Product DTOs
      */
     @Transactional
+    @MethodExecutionTime
     public List<ProductResponseDto> getAll(PageRequest pageRequest) {
         log.info("getting all products");
         log.debug("getting all products");

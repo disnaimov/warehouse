@@ -1,11 +1,13 @@
 package com.example.warehouse.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -16,7 +18,8 @@ import java.util.UUID;
  * @since 1.0
  *  DTO class for the response method of getting a product by id {@link com.example.warehouse.entities.Product} class.
  */
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductResponseDto implements Serializable {
@@ -26,7 +29,7 @@ public class ProductResponseDto implements Serializable {
     private String name;
     private String description;
     private String category;
-    private int price;
+    private BigDecimal price;
     private int quantity;
     private Timestamp lastQuantityUpdate;
     private LocalDate created;

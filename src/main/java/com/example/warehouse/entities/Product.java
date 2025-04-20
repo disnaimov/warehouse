@@ -1,12 +1,20 @@
 package com.example.warehouse.entities;
 
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -20,7 +28,8 @@ import java.util.UUID;
  */
 @Table(name = "products")
 @Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Product implements Serializable {
@@ -37,7 +46,7 @@ public class Product implements Serializable {
     private String name;
 
     @Column(name = "article", nullable = false, unique = true)
-    private String article;
+    private UUID article;
 
     @Column(name = "description", nullable = false)
     private String description;
@@ -45,8 +54,8 @@ public class Product implements Serializable {
     @Column(name = "category", nullable = false)
     private String category;
 
-    @Column(name = "price", nullable = false)
-    private int price;
+    @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;
