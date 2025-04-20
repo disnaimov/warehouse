@@ -8,9 +8,6 @@ import lombok.Setter;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.UUID;
 
 /**
@@ -19,10 +16,10 @@ import java.util.UUID;
  * @since 1.0
  * DTO class for {@link com.example.warehouse.entities.Product} class.
  */
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ProductDto implements Serializable {
 
     @Serial
