@@ -3,6 +3,7 @@ package com.example.warehouse.controllers;
 import com.example.warehouse.dto.CreateOrderDto;
 import com.example.warehouse.dto.OrderGetByIdDto;
 import com.example.warehouse.dto.PatchOrderDto;
+import com.example.warehouse.entities.OrderInfo;
 import com.example.warehouse.enums.OrderStatus;
 import com.example.warehouse.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -64,5 +68,21 @@ public class OrderRestController {
     @RequestMapping(value = "/{id}/status", method = RequestMethod.PATCH)
     public ResponseEntity<OrderStatus> updateStatus(@PathVariable("id") UUID orderId) {
         return new ResponseEntity<>(orderService.updateStatus(orderId), OK);
+    }
+
+    /*@RequestMapping(path = "/account", method = RequestMethod.POST)
+    public ResponseEntity<Map<String, String>> getAccountNumber(@RequestBody List<String> logins) {
+        return new ResponseEntity<>(orderService.getAccountNumber(logins), OK);
+    }
+
+    @RequestMapping(path = "/inn", method = RequestMethod.POST)
+    public ResponseEntity<Map<String, String>> getAccountInn(@RequestBody List<String> logins) {
+        return new ResponseEntity<>(orderService.getAccountInn(logins), OK);
+    }*/
+
+    @RequestMapping(path = "/getall", method = RequestMethod.GET)
+    public ResponseEntity
+            <Map<UUID, List<OrderInfo>>> getAllProducts() {
+        return new ResponseEntity<>(orderService.method(), OK);
     }
 }
