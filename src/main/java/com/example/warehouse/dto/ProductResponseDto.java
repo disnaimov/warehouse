@@ -31,4 +31,5 @@ public class ProductResponseDto implements Serializable {
     private int quantity;
     private Long lastQuantityUpdate;
     private Long created;
+    private boolean isAvailable;
 }

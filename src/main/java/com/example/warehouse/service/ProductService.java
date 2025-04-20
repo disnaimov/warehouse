@@ -83,8 +83,8 @@ public class ProductService {
             throw new InvalidEntityDataException("Некорректная цена: Проверьте правильность ввода и повторите попытку.", "INCORRECT_PRICE", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
-        if (productDto.getQuantity() <= 0) {
-            log.error("received incorrect quantity, <= 0");
+        if (productDto.getQuantity() < 0) {
+            log.error("received incorrect quantity, = 0");
             throw new InvalidEntityDataException("Некорректное количество: Проверьте правильность ввода и повторите попытку.", "INCORRECT_QUANTITY", HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
@@ -111,13 +111,16 @@ public class ProductService {
 
         validation(productDto);
 
-
-        Product product = mapper.map(productDto, Product.class);
-        product.setCreated(dATA);
-        product.setLastQuantityUpdate(dATA);
-        product = productRepository.save(product);
-        productDto = mapper.map(product, ProductDto.class);
-
+            Product product = mapper.map(productDto, Product.class);
+            product.setCreated(dATA);
+            product.setLastQuantityUpdate(dATA);
+            if (productDto.getQuantity() == 0) {
+                product.setAvailable(false);
+            } else {
+                product.setAvailable(true);
+            }
+            product = productRepository.save(product);
+            productDto = mapper.map(product, ProductDto.class);
 
         log.info("Product saved");
         log.debug("Product saved {}", productDto.toString());
@@ -150,9 +153,14 @@ public class ProductService {
         product.setPrice(productDto.getPrice());
         product.setQuantity(productDto.getQuantity());
 
-        product = productRepository.save(product);
-        ProductResponseDto productResponseDto = mapper.map(product, ProductResponseDto.class);
+            if (productDto.getQuantity() == 0) {
+                product.setAvailable(false);
+            } else {
+                product.setAvailable(true);
+            }
 
+            product = productRepository.save(product);
+            ProductResponseDto productResponseDto = mapper.map(product, ProductResponseDto.class);
 
         log.info("Product updated");
         log.debug("Product updated {}", product);
@@ -229,7 +237,6 @@ public class ProductService {
         } else
             throw new InvalidEntityDataException("Ошибка: указанный id не существует", "INCORRECT_ID", HttpStatus.NOT_FOUND);
     }
-
 
     @Transactional
     public List<ProductResponseDto> criteriaSearch(PageRequest pageRequest, List<SearchCriteria> searchCriteria) {
