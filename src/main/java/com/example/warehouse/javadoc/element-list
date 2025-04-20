@@ -1,0 +1,9 @@
+com.example.warehouse
+com.example.warehouse.config
+com.example.warehouse.controllers
+com.example.warehouse.dao
+com.example.warehouse.dto
+com.example.warehouse.entities
+com.example.warehouse.exceptions
+com.example.warehouse.hanlders
+com.example.warehouse.service

@@ -1,0 +1,37 @@
+spring:
+  profiles:
+    active: default
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/warehouse
+    username: postgres
+    password: ${PWD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+kafka:
+  bootstrapAddress: localhost:9092
+  groupId: group1
+account:
+  service:
+    url: http://localhost:8082
+    
+app:
+  scheduling:
+    enabled: false
+    optimization: super
+    value: 10
+
+aws:
+  accessKey: test
+  secretKey: test
+  region: us-east-1
+  endpointUrl: s3_endpoint_url
