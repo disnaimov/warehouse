@@ -31,6 +31,6 @@ public class ProductResponseDto implements Serializable {
     private String category;
     private BigDecimal price;
     private int quantity;
-    private Timestamp lastQuantityUpdate;
-    private LocalDate created;
+    private Long lastQuantityUpdate;
+    private Long created;
 }

@@ -8,9 +8,12 @@ import com.example.warehouse.dto.ProductResponseDto;
 import com.example.warehouse.dto.UpdateProductDto;
 import com.example.warehouse.entities.Product;
 import com.example.warehouse.exceptions.InvalidEntityDataException;
+import com.example.warehouse.search.ProductSpecification;
+import com.example.warehouse.search.criteria.SearchCriteria;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,11 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author Dmitriy
@@ -94,14 +97,23 @@ public class ProductService {
 
         ProductDto productDto = mapper.map(createProductDto, ProductDto.class);
 
+
+        long dATA = System.currentTimeMillis()/1000;
+        Date date = new Date(dATA);
+        Timestamp timestamp = new Timestamp(dATA);
+        log.info(date.toString());
+        log.info(timestamp.toString());
+
         validation(productDto);
 
-        Date date = new Date();
-        Product product = mapper.map(productDto, Product.class);
-        product.setCreated(LocalDate.now());
-        product.setLastQuantityUpdate(new Timestamp(date.getTime()));
-        product = productRepository.save(product);
-        productDto = mapper.map(product, ProductDto.class);
+
+            Product product = mapper.map(productDto, Product.class);
+            product.setCreated(dATA);
+            product.setLastQuantityUpdate(dATA);
+            product = productRepository.save(product);
+            productDto = mapper.map(product, ProductDto.class);
+
+
 
         log.info("Product saved");
         log.debug("Product saved {}", productDto.toString());
@@ -124,8 +136,7 @@ public class ProductService {
 
             Product product = productRepository.findById(productDto.getId()).orElseThrow();
             if (product.getQuantity() != productDto.getQuantity()) {
-                Date currentDate = new Date();
-                product.setLastQuantityUpdate(new Timestamp(currentDate.getTime()));
+                product.setLastQuantityUpdate(System.currentTimeMillis()/1000);
             }
 
             product.setName(productDto.getName());
@@ -197,5 +208,17 @@ public class ProductService {
             return mapper.map(productRepository.findById(id), ProductResponseDto.class);
         }
         else throw new InvalidEntityDataException("Ошибка: указанный id не существует", "INCORRECT_ID", HttpStatus.NOT_FOUND);
+    }
+
+    @Transactional
+    public List<ProductResponseDto> criteriaSearch(PageRequest pageRequest, List<SearchCriteria> searchCriteria) {
+        log.info("criteria search");
+
+        final ProductSpecification specification = new ProductSpecification(searchCriteria);
+        final Page<Product> products = productRepository.findAll(specification, pageRequest);
+
+        return products.getContent().stream()
+                .map(product -> mapper.map(product, ProductResponseDto.class))
+                .collect(Collectors.toList());
     }
 }

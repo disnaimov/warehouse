@@ -1,5 +1,7 @@
 package com.example.warehouse.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.persistence.*;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -61,8 +63,9 @@ public class Product implements Serializable {
     private int quantity;
 
     @Column(name = "last_quantity_update", nullable = false)
-    private Timestamp lastQuantityUpdate;
+    private Long lastQuantityUpdate;
 
     @Column(name = "creation_date", nullable = false)
-    private LocalDate created;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private Long created;
 }

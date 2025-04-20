@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  *This is warehouse application start class
  */
 @SpringBootApplication
-@EnableScheduling
+//@EnableScheduling
 public class WarehouseApplication {
 	/**
 	 * This is main method, he starts the application

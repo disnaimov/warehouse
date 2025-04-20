@@ -8,6 +8,7 @@ import lombok.Setter;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -41,7 +42,7 @@ public class ProductDto implements Serializable {
 
     private int quantity;
 
-    private Timestamp lastQuantityUpdate;
+    private Long lastQuantityUpdate;
 
-    private LocalDate created;
+    private Long created;
 }

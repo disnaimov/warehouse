@@ -1,9 +1,7 @@
 package com.example.warehouse.controllers;
 
-import com.example.warehouse.dto.CreateProductDto;
-import com.example.warehouse.dto.ProductDto;
-import com.example.warehouse.dto.ProductResponseDto;
-import com.example.warehouse.dto.UpdateProductDto;
+import com.example.warehouse.dto.*;
+import com.example.warehouse.search.criteria.SearchCriteria;
 import com.example.warehouse.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -89,5 +87,13 @@ public class ProductRestController {
     public ResponseEntity<Object> deleteById(@PathVariable("id") UUID id) {
         productService.removeById(id);
         return new ResponseEntity<>(NO_CONTENT);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/cr")
+    public ResponseEntity<List<ProductResponseDto>> criteriaSearch(@RequestParam(required = false, defaultValue = "0") int page,
+                                                                   @RequestParam(required = false, defaultValue = "20") int size,
+                                                                   @RequestBody List<SearchCriteria> criteriaDto) {
+
+        return new ResponseEntity<>(productService.criteriaSearch(PageRequest.of(page, size), criteriaDto), OK);
     }
 }

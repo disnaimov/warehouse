@@ -19,6 +19,7 @@
     import org.springframework.http.ResponseEntity;
 
     import java.math.BigDecimal;
+
     import java.sql.Timestamp;
     import java.time.LocalDate;
     import java.util.Date;
@@ -75,7 +76,7 @@
             updateTv.setDescription("descccc");
             updateTv.setPrice(BigDecimal.valueOf(100));
             updateTv.setQuantity(2000);
-
+          
             ProductDto chair = new ProductDto();
             chair.setId(UUID.randomUUID());
             chair.setName("chair");
@@ -98,19 +99,20 @@
             tvv.setCreated(LocalDate.now());
             tvv.setLastQuantityUpdate(new Timestamp(date.getTime()));
 
-            ResponseEntity<UUID> firstCreateResponse = this.productRestController.create(createTv);
-            ResponseEntity<UUID> secondCreateResponse = this.productRestController.create(createChair);
+            ResponseEntity<ProductDto> firstCreateResponse = this.productRestController.create(tvv);
+            ResponseEntity<ProductDto> secondCreateResponse = this.productRestController.create(chair);
 
-            ResponseEntity<ProductResponseDto> firstGetByIdResponse = this.productRestController.getById(tvv.getId());
-            ResponseEntity<ProductResponseDto> secondGetByIdResponse = this.productRestController.getById(chair.getId());
+            ResponseEntity<ProductDto> firstGetByIdResponse = this.productRestController.getById(tvv.getId());
+            ResponseEntity<ProductDto> secondGetByIdResponse = this.productRestController.getById(chair.getId());
 
-            ResponseEntity<List<ProductResponseDto>> getAllResponse = this.productRestController.getAll(1, 10);
+            ResponseEntity<List<ProductDto>> getAllResponse = this.productRestController.getAll(1, 10);
 
             ResponseEntity<Object> firstRemoveByIdResponse = this.productRestController.deleteById(tvv.getId());
             ResponseEntity<Object> secondRemoveByIdResponse = this.productRestController.deleteById(chair.getId());
 
-            ResponseEntity<ProductResponseDto> firstUpdateResponse = this.productRestController.update(updateTv);
-            ResponseEntity<ProductResponseDto> secondUpdateResponse = this.productRestController.update(updateChair);
+
+            ResponseEntity<ProductDto> firstUpdateResponse = this.productRestController.update(tvv);
+            ResponseEntity<ProductDto> secondUpdateResponse = this.productRestController.update(chair);
 
             Assertions.assertNotNull(firstCreateResponse);
             Assertions.assertNotNull(secondCreateResponse);
@@ -134,8 +136,8 @@
 
             Assertions.assertEquals(HttpStatus.OK, getAllResponse.getStatusCode());
 
-            Assertions.assertEquals(HttpStatus.NO_CONTENT, firstRemoveByIdResponse.getStatusCode());
-            Assertions.assertEquals(HttpStatus.NO_CONTENT, secondRemoveByIdResponse.getStatusCode());
+            Assertions.assertEquals(HttpStatus.OK, firstRemoveByIdResponse.getStatusCode());
+            Assertions.assertEquals(HttpStatus.OK, secondRemoveByIdResponse.getStatusCode());
 
             Assertions.assertEquals(HttpStatus.OK, firstUpdateResponse.getStatusCode());
             Assertions.assertEquals(HttpStatus.OK, secondUpdateResponse.getStatusCode());
