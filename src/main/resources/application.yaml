@@ -29,3 +29,9 @@ app:
     enabled: false
     optimization: super
     value: 10
+
+aws:
+  accessKey: test
+  secretKey: test
+  region: us-east-1
+  endpointUrl: s3_endpoint_url
