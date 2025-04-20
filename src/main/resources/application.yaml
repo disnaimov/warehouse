@@ -15,18 +15,23 @@ spring:
     hibernate:
       ddl-auto: validate
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
 
+kafka:
+  bootstrapAddress: localhost:9092
+  groupId: group1
+account:
+  service:
+    url: http://localhost:8082
+    
 app:
   scheduling:
-    enabled: false  
-    optimization: true
-
+    enabled: false
+    optimization: super
+    value: 10
 
 aws:
   accessKey: test
   secretKey: test
   region: us-east-1
-  endpointUrl: your_s3_endpoint_url
-
-
-
+  endpointUrl: s3_endpoint_url
