@@ -1,5 +1,6 @@
 package com.example.warehouse.service;
 
+import com.example.warehouse.annotation.MethodExecutionTime;
 import com.example.warehouse.dao.ProductRepository;
 import com.example.warehouse.dto.CreateProductDto;
 import com.example.warehouse.dto.ProductDto;
@@ -176,6 +177,7 @@ public class ProductService {
      * @return List Product DTOs
      */
     @Transactional
+    @MethodExecutionTime
     public List<ProductResponseDto> getAll(PageRequest pageRequest) {
         log.info("getting all products");
         log.debug("getting all products");

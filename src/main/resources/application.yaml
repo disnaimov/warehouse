@@ -21,6 +21,3 @@ app:
     enabled: false
     optimization: super
     value: 10
-
-
-

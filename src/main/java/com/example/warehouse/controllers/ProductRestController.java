@@ -6,12 +6,20 @@ import com.example.warehouse.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
+
 
 /**
  * @author Dmitriy
@@ -55,7 +63,7 @@ public class ProductRestController {
      */
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<ProductResponseDto>> getAll(@RequestParam (required = false, defaultValue = "0") int page,
-                                                   @RequestParam (required = false, defaultValue = "20") int size) {
+                                                   @RequestParam(required = false, defaultValue = "20") int size) {
 
         return new ResponseEntity<>(productService.getAll(PageRequest.of(page, size)), OK);
     }
