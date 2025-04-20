@@ -10,9 +10,12 @@ import com.example.warehouse.entities.Currency;
 import com.example.warehouse.entities.Product;
 import com.example.warehouse.exceptions.InvalidEntityDataException;
 import com.example.warehouse.provider.ExchangeRateProvider;
+import com.example.warehouse.search.ProductSpecification;
+import com.example.warehouse.search.criteria.SearchCriteria;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -228,4 +231,15 @@ public class ProductService {
     }
 
 
+    @Transactional
+    public List<ProductResponseDto> criteriaSearch(PageRequest pageRequest, List<SearchCriteria> searchCriteria) {
+        log.info("criteria search");
+
+        final ProductSpecification specification = new ProductSpecification(searchCriteria);
+        final Page<Product> products = productRepository.findAll(specification, pageRequest);
+
+        return products.getContent().stream()
+                .map(product -> mapper.map(product, ProductResponseDto.class))
+                .collect(Collectors.toList());
+    }
 }
